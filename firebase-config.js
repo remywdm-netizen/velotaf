@@ -6,10 +6,10 @@
 // les données restent dans votre navigateur et ne sont pas partagées.
 
 export const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyBT_xM0wNCz74tvdc0j7DjZ3dc33tyJJJg",
+  authDomain: "velotaf-fde7a.firebaseapp.com",
+  projectId: "velotaf-fde7a",
+  storageBucket: "velotaf-fde7a.firebasestorage.app",
+  messagingSenderId: "215024461306",
+  appId: "1:215024461306:web:fe6c2b6e4dcc6f5ad5b043",
 };

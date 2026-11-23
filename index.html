@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Peloton Vélotaf</title>
+<meta name="description" content="Organisez votre groupe de vélotaf : qui roule demain, qui mène, retards et kilomètres du mois.">
+<meta name="theme-color" content="#1f6f5c">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="sign">
+    <button class="sign-btn" id="btn-config" type="button" hidden>Réglages</button>
+    <div class="top">
+      <div class="pict" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="23" r="6"/><circle cx="26" cy="23" r="6"/><path d="M8 23l6-11h9l3 11M14 12l5 11h-11M21 7h4l-2 5"/></svg>
+      </div>
+      <div>
+        <h1 id="g-name">Peloton Vélotaf</h1>
+        <div class="sub" id="g-sub">On roule ensemble jusqu'au travail, chaque jour ouvré.</div>
+      </div>
+    </div>
+    <div class="facts" id="facts" hidden>
+      <div class="fact"><span class="label">Rendez-vous</span><span class="v" id="g-meet">À définir</span></div>
+      <div class="fact"><span class="label">Départ aller</span><span class="v mono" id="g-aller">--:--</span></div>
+      <div class="fact"><span class="label">Départ retour</span><span class="v mono" id="g-retour">--:--</span></div>
+      <div class="fact"><span class="label">Arrivée</span><span class="v" id="g-dest">À définir</span></div>
+      <div class="fact"><span class="label">Distance</span><span class="v mono" id="g-km">— km</span></div>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <!-- Accueil : créer ou rejoindre un groupe -->
+  <section class="panel" id="view-home" hidden aria-labelledby="home-h">
+    <h2 id="home-h">Rouler ensemble jusqu'au travail</h2>
+    <p class="lead">Chaque matin, savoir qui part du point de rendez-vous, à quelle heure, et qui mène. Sans compte : un lien secret par groupe, un prénom par cycliste.</p>
+    <div class="home-grid">
+      <form class="form card" id="create-form">
+        <h3>Créer un groupe</h3>
+        <label class="field"><span class="label">Nom du groupe</span><input id="create-name" maxlength="60" placeholder="Vélotaf Hôpital Nord" required></label>
+        <label class="field"><span class="label">Votre prénom</span><input id="create-me" maxlength="40" placeholder="Camille" required autocomplete="given-name"></label>
+        <button class="primary" type="submit">Créer et obtenir le lien</button>
+        <span class="status" id="create-status"></span>
+      </form>
+      <form class="form card" id="join-form">
+        <h3>Rejoindre un groupe</h3>
+        <label class="field"><span class="label">Lien ou code reçu</span><input id="join-code" maxlength="300" placeholder="https://…/#k7Q2mX9pRt" required></label>
+        <button class="ghost" type="submit">Rejoindre</button>
+        <span class="status" id="join-status"></span>
+      </form>
+    </div>
+  </section>
+
+  <!-- Identité -->
+  <section class="panel" id="view-who" hidden aria-labelledby="who-h">
+    <h2 id="who-h">Qui êtes-vous ?</h2>
+    <p class="lead">Choisissez votre prénom s'il est déjà dans le groupe, sinon ajoutez-le. Il est retenu sur cet appareil.</p>
+    <div class="people pick" id="who-list"></div>
+    <form class="composer" id="who-form">
+      <input id="who-name" maxlength="40" placeholder="Votre prénom" aria-label="Votre prénom" autocomplete="given-name" required>
+      <button class="primary" type="submit">C'est moi</button>
+    </form>
+    <span class="status" id="who-status"></span>
+  </section>
+
+  <!-- Réglages -->
+  <section class="panel" id="config-panel" hidden aria-labelledby="cfg-h">
+    <div class="panel-head"><h2 id="cfg-h">Réglages du groupe</h2></div>
+    <form class="form" id="cfg-form">
+      <div class="row">
+        <label class="field"><span class="label">Nom du groupe</span><input id="cfg-name" maxlength="60"></label>
+        <label class="field"><span class="label">Point de rendez-vous</span><input id="cfg-meet" maxlength="100" placeholder="Fontaine de la place du Marché"></label>
+      </div>
+      <div class="row">
+        <label class="field"><span class="label">Départ aller</span><input id="cfg-aller" type="time" value="08:00"></label>
+        <label class="field"><span class="label">Départ retour</span><input id="cfg-retour" type="time" value="17:45"></label>
+        <label class="field"><span class="label">Distance aller (km)</span><input id="cfg-km" type="number" min="0" max="200" step="0.1" placeholder="7.5"></label>
+      </div>
+      <label class="field"><span class="label">Lieu d'arrivée</span><input id="cfg-dest" maxlength="100" placeholder="Parking vélo, entrée nord"></label>
+      <label class="field"><span class="label">Itinéraire et consignes</span><textarea id="cfg-route" maxlength="800" placeholder="Quai de la Loire → piste du canal → pont Vert. Lumières obligatoires, on attend le dernier au feu."></textarea></label>
+      <div class="actions">
+        <button class="primary" type="submit">Enregistrer</button>
+        <button class="ghost" type="button" id="cfg-cancel">Fermer</button>
+        <span class="status" id="cfg-status"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- Vue principale -->
+  <div id="view-main" hidden>
+    <div class="sharebar">
+      <span class="label">Lien du groupe</span>
+      <code id="share-link" class="mono"></code>
+      <button class="ghost small" type="button" id="btn-copy">Copier</button>
+      <span class="spacer"></span>
+      <span class="hint">Vous êtes <strong id="me-name"></strong></span>
+      <button class="ghost small" type="button" id="btn-switch">Changer</button>
+    </div>
+
+    <div class="cols">
+      <div class="stack">
+        <section class="panel" aria-labelledby="today-h">
+          <div class="panel-head">
+            <h2 id="today-h">Le prochain trajet</h2>
+            <span class="today-date" id="today-date"></span>
+          </div>
+          <div class="legs">
+            <div class="leg">
+              <div class="leg-head"><span class="leg-title">Aller</span><span class="leg-time" id="t-aller-time">--:--</span></div>
+              <div class="count"><span id="t-aller-n">0</span><small>cyclistes</small></div>
+              <div class="people" id="t-aller"></div>
+            </div>
+            <div class="leg">
+              <div class="leg-head"><span class="leg-title">Retour</span><span class="leg-time" id="t-retour-time">--:--</span></div>
+              <div class="count"><span id="t-retour-n">0</span><small>cyclistes</small></div>
+              <div class="people" id="t-retour"></div>
+            </div>
+          </div>
+          <div class="me-block">
+            <span class="label">Moi, ce jour-là</span>
+            <div class="me-row">
+              <button class="tog" type="button" id="me-aller" aria-pressed="false">Je fais l'aller</button>
+              <button class="tog" type="button" id="me-retour" aria-pressed="false">Je fais le retour</button>
+              <button class="tog vest" type="button" id="me-lead" aria-pressed="false">Je mène le groupe</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="week-h">
+          <div class="panel-head">
+            <h2 id="week-h">La semaine</h2>
+            <div class="weeknav">
+              <button class="iconbtn" type="button" id="wk-prev" aria-label="Semaine précédente">‹</button>
+              <span class="weeklbl" id="wk-label"></span>
+              <button class="iconbtn" type="button" id="wk-next" aria-label="Semaine suivante">›</button>
+            </div>
+          </div>
+          <div class="tablewrap"><table class="week" id="week"></table></div>
+          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). En jaune : celui ou celle qui mène.</p>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="panel" aria-labelledby="feed-h">
+          <div class="panel-head"><h2 id="feed-h">Annonces</h2><span class="hint">48 dernières heures</span></div>
+          <div class="quick" id="quick">
+            <button type="button" data-msg="J'ai 5 min de retard, partez sans moi si besoin">5 min de retard</button>
+            <button type="button" data-msg="Crevaison, je vous rejoins plus tard" data-alert="1">Crevaison</button>
+            <button type="button" data-msg="Je ne viens pas finalement">Je ne viens pas</button>
+            <button type="button" data-msg="Je suis au point de rendez-vous">Je suis au RDV</button>
+          </div>
+          <form class="composer" id="post-form">
+            <input id="post-text" maxlength="200" placeholder="Message au groupe" aria-label="Message au groupe" autocomplete="off">
+            <button class="primary" type="submit">Envoyer</button>
+          </form>
+          <ul class="feed" id="feed"></ul>
+        </section>
+
+        <section class="panel" aria-labelledby="stats-h">
+          <div class="panel-head"><h2 id="stats-h">Ce mois-ci</h2></div>
+          <div class="stats">
+            <div class="stat"><div class="label">Trajets</div><div class="n" id="s-trips">0</div></div>
+            <div class="stat"><div class="label">Km roulés</div><div class="n" id="s-km">0</div></div>
+            <div class="stat"><div class="label">CO₂ évité</div><div class="n" id="s-co2">0</div></div>
+          </div>
+          <p class="hint">Trajets cochés depuis le 1er du mois, multipliés par la distance du groupe. CO₂ : 0,2 kg par km évité en voiture (ordre de grandeur ADEME).</p>
+        </section>
+
+        <section class="panel" id="route-panel" hidden aria-labelledby="route-h">
+          <div class="panel-head"><h2 id="route-h">Itinéraire</h2></div>
+          <div class="route" id="route-text"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <footer>Peloton Vélotaf · les données du groupe sont visibles par toute personne qui a le lien · <a href="#nouveau">Créer ou rejoindre un autre groupe</a></footer>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

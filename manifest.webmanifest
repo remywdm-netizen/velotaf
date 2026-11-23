@@ -1,0 +1,11 @@
+{
+  "name": "Peloton Vélotaf",
+  "short_name": "Vélotaf",
+  "description": "Organisez votre groupe de vélotaf.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#eef2f1",
+  "theme_color": "#1f6f5c",
+  "lang": "fr",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

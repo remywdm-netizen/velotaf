@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// Règles de sécurité Firestore pour Peloton Vélotaf.
+// Principe : chaque groupe vit sous /groups/{code}, où {code} est un identifiant
+// aléatoire de 10 caractères ou plus, présent dans le lien partagé.
+// Sans le code, impossible de lister ni de lire un groupe.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function validCode(code) {
+      return code.matches('^[A-Za-z0-9]{10,40}$');
+    }
+
+    function shortString(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    function validGroup(d) {
+      return d.keys().hasOnly(['name', 'meet', 'aller', 'retour', 'km', 'dest', 'route', 'createdAt'])
+        && shortString(d.name, 60)
+        && (!('meet' in d) || shortString(d.meet, 100))
+        && (!('aller' in d) || shortString(d.aller, 5))
+        && (!('retour' in d) || shortString(d.retour, 5))
+        && (!('km' in d) || (d.km is number && d.km >= 0 && d.km <= 200))
+        && (!('dest' in d) || shortString(d.dest, 100))
+        && (!('route' in d) || shortString(d.route, 800))
+        && (!('createdAt' in d) || d.createdAt is number);
+    }
+
+    function validRider(d) {
+      return d.keys().hasOnly(['name', 'days', 'posts', 'updatedAt'])
+        && shortString(d.name, 40) && d.name.size() > 0
+        && d.days is map && d.days.size() <= 80
+        && d.posts is list && d.posts.size() <= 20
+        && d.updatedAt is number;
+    }
+
+    match /groups/{code} {
+      allow get: if validCode(code);
+      allow list: if false;
+      allow create, update: if validCode(code) && validGroup(request.resource.data);
+      allow delete: if false;
+
+      match /riders/{riderId} {
+        allow read: if validCode(code);
+        allow create, update: if validCode(code)
+          && riderId.matches('^[A-Za-z0-9]{8,40}$')
+          && exists(/databases/$(database)/documents/groups/$(code))
+          && validRider(request.resource.data);
+        allow delete: if false;
+      }
+    }
+  }
+}

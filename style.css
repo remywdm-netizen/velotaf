@@ -97,7 +97,7 @@ button { cursor: pointer; }
 .slot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; }
 .slot + .slot { border-top: 1px dashed var(--line); padding-top: 8px; }
 .slot-time { font-size: .82rem; color: var(--muted); }
-#t-retour { display: grid; gap: 8px; }
+.people.slots { display: grid; gap: 8px; }
 .me-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .tog { border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 14px; font-weight: 600; }
 .tog[aria-pressed="true"] { background: var(--lane); border-color: var(--lane); color: var(--lane-ink); }

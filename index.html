@@ -27,7 +27,7 @@
     </div>
     <div class="facts" id="facts" hidden>
       <div class="fact"><span class="label">Rendez-vous</span><span class="v" id="g-meet">À définir</span></div>
-      <div class="fact"><span class="label">Départ aller</span><span class="v mono" id="g-aller">--:--</span></div>
+      <div class="fact"><span class="label">Aller habituel</span><span class="v mono" id="g-aller">--:--</span></div>
       <div class="fact"><span class="label">Retour habituel</span><span class="v mono" id="g-retour">--:--</span></div>
       <div class="fact"><span class="label">Arrivée</span><span class="v" id="g-dest">À définir</span></div>
       <div class="fact"><span class="label">Distance</span><span class="v mono" id="g-km">— km</span></div>
@@ -78,7 +78,7 @@
         <label class="field"><span class="label">Point de rendez-vous</span><input id="cfg-meet" maxlength="100" placeholder="Fontaine de la place du Marché"></label>
       </div>
       <div class="row">
-        <label class="field"><span class="label">Départ aller</span><input id="cfg-aller" type="time" value="08:00"></label>
+        <label class="field"><span class="label">Aller habituel</span><input id="cfg-aller" type="time" value="08:00"></label>
         <label class="field"><span class="label">Retour habituel</span><input id="cfg-retour" type="time" value="17:45"></label>
         <label class="field"><span class="label">Distance aller (km)</span><input id="cfg-km" type="number" min="0" max="200" step="0.1" placeholder="7.5"></label>
       </div>
@@ -114,12 +114,12 @@
             <div class="leg">
               <div class="leg-head"><span class="leg-title">Aller</span><span class="leg-time" id="t-aller-time">--:--</span></div>
               <div class="count"><span id="t-aller-n">0</span><small>cyclistes</small></div>
-              <div class="people" id="t-aller"></div>
+              <div class="people slots" id="t-aller"></div>
             </div>
             <div class="leg">
               <div class="leg-head"><span class="leg-title">Retour</span><span class="leg-time" id="t-retour-time">--:--</span></div>
               <div class="count"><span id="t-retour-n">0</span><small>cyclistes</small></div>
-              <div class="people" id="t-retour"></div>
+              <div class="people slots" id="t-retour"></div>
             </div>
           </div>
           <div class="me-block">
@@ -127,6 +127,10 @@
             <div class="me-row">
               <button class="tog" type="button" id="me-aller" aria-pressed="false">Je fais l'aller</button>
               <button class="tog" type="button" id="me-retour" aria-pressed="false">Je fais le retour</button>
+            </div>
+            <div class="retour-at" id="me-aller-wrap" hidden>
+              <label class="retour-field"><span class="label">Je pars à</span><input id="me-aller-at" type="time" step="300"></label>
+              <div class="slot-btns" id="aller-slots" aria-label="Heures de départ déjà choisies"></div>
             </div>
             <div class="retour-at" id="me-retour-wrap" hidden>
               <label class="retour-field"><span class="label">Je repars à</span><input id="me-retour-at" type="time" step="300"></label>
@@ -145,7 +149,7 @@
             </div>
           </div>
           <div class="tablewrap"><table class="week" id="week"></table></div>
-          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). Une heure à côté du R indique un retour décalé.</p>
+          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). Une heure à côté du A ou du R indique un horaire différent de l'habituel.</p>
         </section>
       </div>
 

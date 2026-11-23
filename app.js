@@ -101,12 +101,13 @@ function chip(id) {
   return el;
 }
 
-const retourOf = (x) => (x && x.retour ? x.retourAt || cfg.retour || "--:--" : null);
+/** Heure de départ d'un cycliste pour un trajet ("aller" ou "retour"), ou null s'il ne le fait pas. */
+const timeOf = (x, leg) => (x && x[leg] ? x[`${leg}At`] || cfg[leg] || "--:--" : null);
 
 /** Heure de retour la plus tardive du jour (habituelle ou choisie par un cycliste). */
 function latestRetour(date) {
   let latest = cfg.retour || "18:00";
-  for (const id of Object.keys(riders)) { const t = retourOf(dayOf(id, date)); if (t && t !== "--:--" && t > latest) latest = t; }
+  for (const id of Object.keys(riders)) { const t = timeOf(dayOf(id, date), "retour"); if (t && t !== "--:--" && t > latest) latest = t; }
   return latest;
 }
 
@@ -117,48 +118,41 @@ function render() {
 
   $("today-date").textContent = (rd === todayIso() ? "Aujourd'hui, " : "") + fmtLong(rideDay);
   const byName = (a, b) => nameOf(a).localeCompare(nameOf(b), "fr");
-  const none = () => { const e = document.createElement("span"); e.className = "empty"; e.textContent = "Personne d'inscrit pour l'instant."; return e; };
-
-  // Aller : un seul départ
-  const allerBox = $("t-aller"); allerBox.replaceChildren();
-  const allers = ids.filter((u) => dayOf(u, rd)?.aller).sort(byName);
-  allers.forEach((u) => allerBox.append(chip(u)));
-  if (!allers.length) allerBox.append(none());
-  $("t-aller-n").textContent = allers.length;
-
-  // Retour : regroupé par heure de départ
-  const retourBox = $("t-retour"); retourBox.replaceChildren();
-  const slots = new Map();
-  ids.forEach((u) => { const t = retourOf(dayOf(u, rd)); if (t) { if (!slots.has(t)) slots.set(t, []); slots.get(t).push(u); } });
-  const times = [...slots.keys()].sort();
-  times.forEach((t) => {
-    const row = document.createElement("div"); row.className = "slot";
-    const tm = document.createElement("span"); tm.className = "slot-time mono"; tm.textContent = t;
-    const ppl = document.createElement("div"); ppl.className = "people";
-    slots.get(t).sort(byName).forEach((u) => ppl.append(chip(u)));
-    row.append(tm, ppl); retourBox.append(row);
-  });
-  if (!times.length) retourBox.append(none());
-  $("t-retour-n").textContent = [...slots.values()].reduce((n, l) => n + l.length, 0);
-  $("t-retour-time").textContent = times.length > 1 ? `${times[0]} → ${times[times.length - 1]}` : (times[0] || cfg.retour || "--:--");
-
   const mine = dayOf(meId, rd) || {};
-  for (const k of ["aller", "retour"]) $(`me-${k}`).setAttribute("aria-pressed", mine[k] ? "true" : "false");
 
-  // Mon heure de retour + raccourcis vers les heures déjà choisies par d'autres
-  $("me-retour-wrap").hidden = !mine.retour;
-  if (mine.retour) {
-    const myT = retourOf(mine);
-    if (document.activeElement !== $("me-retour-at")) $("me-retour-at").value = myT === "--:--" ? "" : myT;
-    const sl = $("retour-slots"); sl.replaceChildren();
-    const others = new Set([cfg.retour, ...times].filter((t) => t && t !== "--:--" && t !== myT));
-    [...others].sort().forEach((t) => {
-      const b = document.createElement("button"); b.type = "button"; b.className = "slot-btn mono"; b.dataset.time = t;
-      const n = (slots.get(t) || []).length;
-      b.textContent = n ? `${t} · ${n}` : t;
-      b.title = n ? `Partir à ${t} avec ${n} cycliste${n > 1 ? "s" : ""}` : `Partir à ${t} (heure habituelle)`;
-      sl.append(b);
+  for (const leg of ["aller", "retour"]) {
+    // Cyclistes regroupés par heure de départ
+    const box = $(`t-${leg}`); box.replaceChildren();
+    const slots = new Map();
+    ids.forEach((u) => { const t = timeOf(dayOf(u, rd), leg); if (t) { if (!slots.has(t)) slots.set(t, []); slots.get(t).push(u); } });
+    const times = [...slots.keys()].sort();
+    times.forEach((t) => {
+      const row = document.createElement("div"); row.className = "slot";
+      const tm = document.createElement("span"); tm.className = "slot-time mono"; tm.textContent = t;
+      const ppl = document.createElement("div"); ppl.className = "people";
+      slots.get(t).sort(byName).forEach((u) => ppl.append(chip(u)));
+      row.append(tm, ppl); box.append(row);
     });
+    if (!times.length) { const e = document.createElement("span"); e.className = "empty"; e.textContent = "Personne d'inscrit pour l'instant."; box.append(e); }
+    $(`t-${leg}-n`).textContent = [...slots.values()].reduce((n, l) => n + l.length, 0);
+    $(`t-${leg}-time`).textContent = times.length > 1 ? `${times[0]} → ${times[times.length - 1]}` : (times[0] || cfg[leg] || "--:--");
+
+    // Mon bouton, mon heure, et raccourcis vers les heures déjà choisies par d'autres
+    $(`me-${leg}`).setAttribute("aria-pressed", mine[leg] ? "true" : "false");
+    $(`me-${leg}-wrap`).hidden = !mine[leg];
+    if (mine[leg]) {
+      const myT = timeOf(mine, leg), input = $(`me-${leg}-at`);
+      if (document.activeElement !== input) input.value = myT === "--:--" ? "" : myT;
+      const sl = $(`${leg}-slots`); sl.replaceChildren();
+      const others = new Set([cfg[leg], ...times].filter((t) => t && t !== "--:--" && t !== myT));
+      [...others].sort().forEach((t) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "slot-btn mono"; b.dataset.time = t;
+        const n = (slots.get(t) || []).length;
+        b.textContent = n ? `${t} · ${n}` : t;
+        b.title = n ? `Partir à ${t} avec ${n} cycliste${n > 1 ? "s" : ""}` : `Partir à ${t} (heure habituelle)`;
+        sl.append(b);
+      });
+    }
   }
 
   renderWeek(ids);
@@ -197,12 +191,13 @@ function renderWeek(ids) {
       el.className = "cell" + (past ? " past" : "");
       if (el.tagName === "BUTTON") { el.type = "button"; el.dataset.date = di; el.setAttribute("aria-label", `Mon trajet du ${fmtLong(d)}`); }
       if (x.aller || x.retour) {
-        if (x.aller) { const p = document.createElement("span"); p.className = "pip"; p.textContent = "A"; el.append(p); }
-        if (x.retour) {
-          const p = document.createElement("span"); p.className = "pip";
-          p.textContent = x.retourAt && x.retourAt !== cfg.retour ? `R ${x.retourAt}` : "R";
-          el.append(p); el.title = `Retour à ${retourOf(x)}`;
+        const tips = [];
+        for (const [leg, l, word] of [["aller", "A", "Aller"], ["retour", "R", "Retour"]]) if (x[leg]) {
+          const at = x[`${leg}At`], p = document.createElement("span"); p.className = "pip";
+          p.textContent = at && at !== cfg[leg] ? `${l} ${at}` : l;
+          el.append(p); tips.push(`${word} à ${timeOf(x, leg)}`);
         }
+        el.title = tips.join(" · ");
       } else el.textContent = "—";
       r.insertCell().append(el);
     });
@@ -287,8 +282,10 @@ async function flush() {
 function setDay(date, patch) {
   const d = myDoc(); const prev = d.days[date] || {};
   const next = { aller: !!(patch.aller ?? prev.aller), retour: !!(patch.retour ?? prev.retour) };
-  const at = "retourAt" in patch ? patch.retourAt : prev.retourAt;
-  if (next.retour && at && /^\d\d:\d\d$/.test(at) && at !== cfg.retour) next.retourAt = at;
+  for (const leg of ["aller", "retour"]) {
+    const k = `${leg}At`, at = k in patch ? patch[k] : prev[k];
+    if (next[leg] && at && /^\d\d:\d\d$/.test(at) && at !== cfg[leg]) next[k] = at;
+  }
   d.days[date] = next; stage(d);
 }
 
@@ -313,8 +310,10 @@ export function cycle(cur) { // — → A+R → A → R → —
   return { aller: false, retour: false };
 }
 
-$("me-retour-at").addEventListener("change", (e) => { if (e.target.value) setDay(iso(rideDay), { retourAt: e.target.value }); });
-$("retour-slots").addEventListener("click", (e) => { const b = e.target.closest("button[data-time]"); if (b) setDay(iso(rideDay), { retourAt: b.dataset.time }); });
+for (const leg of ["aller", "retour"]) {
+  $(`me-${leg}-at`).addEventListener("change", (e) => { if (e.target.value) setDay(iso(rideDay), { [`${leg}At`]: e.target.value }); });
+  $(`${leg}-slots`).addEventListener("click", (e) => { const b = e.target.closest("button[data-time]"); if (b) setDay(iso(rideDay), { [`${leg}At`]: b.dataset.time }); });
+}
 
 $("week").addEventListener("click", (e) => {
   const b = e.target.closest("button.cell"); if (!b) return;

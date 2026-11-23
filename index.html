@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Peloton Vélotaf</title>
-<meta name="description" content="Organisez votre groupe de vélotaf : qui roule demain, qui mène, retards et kilomètres du mois.">
+<meta name="description" content="Organisez votre groupe de vélotaf : qui roule demain, retards et kilomètres du mois.">
 <meta name="theme-color" content="#1f6f5c">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
@@ -39,7 +39,7 @@
   <!-- Accueil : créer ou rejoindre un groupe -->
   <section class="panel" id="view-home" hidden aria-labelledby="home-h">
     <h2 id="home-h">Rouler ensemble jusqu'au travail</h2>
-    <p class="lead">Chaque matin, savoir qui part du point de rendez-vous, à quelle heure, et qui mène. Sans compte : un lien secret par groupe, un prénom par cycliste.</p>
+    <p class="lead">Chaque matin, savoir qui part du point de rendez-vous, et à quelle heure. Sans compte : un lien secret par groupe, un prénom par cycliste.</p>
     <div class="home-grid">
       <form class="form card" id="create-form">
         <h3>Créer un groupe</h3>
@@ -127,7 +127,6 @@
             <div class="me-row">
               <button class="tog" type="button" id="me-aller" aria-pressed="false">Je fais l'aller</button>
               <button class="tog" type="button" id="me-retour" aria-pressed="false">Je fais le retour</button>
-              <button class="tog vest" type="button" id="me-lead" aria-pressed="false">Je mène le groupe</button>
             </div>
           </div>
         </section>
@@ -142,7 +141,7 @@
             </div>
           </div>
           <div class="tablewrap"><table class="week" id="week"></table></div>
-          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). En jaune : celui ou celle qui mène.</p>
+          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul).</p>
         </section>
       </div>
 

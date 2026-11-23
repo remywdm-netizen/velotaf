@@ -94,11 +94,10 @@ function renderConfig() {
 const nameOf = (id) => (id === meId ? "Moi" : (riders[id] && riders[id].name) || "Cycliste");
 const dayOf = (id, date) => (riders[id] && riders[id].days && riders[id].days[date]) || null;
 
-function chip(id, lead) {
-  const el = document.createElement("span"); el.className = "chip" + (lead ? " lead" : "");
+function chip(id) {
+  const el = document.createElement("span"); el.className = "chip";
   const s = document.createElement("span"); s.textContent = nameOf(id);
   el.append(avatar(riders[id] && riders[id].name), s);
-  if (lead) { const t = document.createElement("span"); t.className = "tag"; t.textContent = "mène"; el.append(t); }
   return el;
 }
 
@@ -110,13 +109,13 @@ function render() {
   $("today-date").textContent = (rd === todayIso() ? "Aujourd'hui, " : "") + fmtLong(rideDay);
   for (const leg of ["aller", "retour"]) {
     const box = $(`t-${leg}`); box.replaceChildren();
-    const going = ids.filter((u) => dayOf(u, rd)?.[leg]).sort((a, b) => (dayOf(b, rd).lead ? 1 : 0) - (dayOf(a, rd).lead ? 1 : 0));
-    going.forEach((u) => box.append(chip(u, dayOf(u, rd).lead)));
+    const going = ids.filter((u) => dayOf(u, rd)?.[leg]).sort((a, b) => nameOf(a).localeCompare(nameOf(b), "fr"));
+    going.forEach((u) => box.append(chip(u)));
     if (!going.length) { const e = document.createElement("span"); e.className = "empty"; e.textContent = "Personne d'inscrit pour l'instant."; box.append(e); }
     $(`t-${leg}-n`).textContent = going.length;
   }
   const mine = dayOf(meId, rd) || {};
-  for (const k of ["aller", "retour", "lead"]) $(`me-${k}`).setAttribute("aria-pressed", mine[k] ? "true" : "false");
+  for (const k of ["aller", "retour"]) $(`me-${k}`).setAttribute("aria-pressed", mine[k] ? "true" : "false");
 
   renderWeek(ids);
   renderFeed(ids);
@@ -154,7 +153,7 @@ function renderWeek(ids) {
       el.className = "cell" + (past ? " past" : "");
       if (el.tagName === "BUTTON") { el.type = "button"; el.dataset.date = di; el.setAttribute("aria-label", `Mon trajet du ${fmtLong(d)}`); }
       if (x.aller || x.retour) {
-        for (const [k, l] of [["aller", "A"], ["retour", "R"]]) if (x[k]) { const p = document.createElement("span"); p.className = "pip" + (x.lead ? " lead" : ""); p.textContent = l; el.append(p); }
+        for (const [k, l] of [["aller", "A"], ["retour", "R"]]) if (x[k]) { const p = document.createElement("span"); p.className = "pip"; p.textContent = l; el.append(p); }
       } else el.textContent = "—";
       r.insertCell().append(el);
     });
@@ -237,8 +236,8 @@ async function flush() {
 }
 
 function setDay(date, patch) {
-  const d = myDoc(); const next = { ...(d.days[date] || {}), ...patch };
-  if (!next.aller && !next.retour) next.lead = false;
+  const d = myDoc(); const prev = d.days[date] || {};
+  const next = { aller: !!(patch.aller ?? prev.aller), retour: !!(patch.retour ?? prev.retour) };
   d.days[date] = next; stage(d);
 }
 
@@ -249,12 +248,10 @@ function post(text, alert) {
 }
 
 // ---------- Événements ----------
-for (const k of ["aller", "retour", "lead"]) {
+for (const k of ["aller", "retour"]) {
   $(`me-${k}`).addEventListener("click", () => {
     const rd = iso(rideDay), cur = dayOf(meId, rd) || {};
-    const patch = { [k]: !cur[k] };
-    if (k === "lead" && patch.lead && !cur.aller && !cur.retour) patch.aller = true;
-    setDay(rd, patch);
+    setDay(rd, { [k]: !cur[k] });
   });
 }
 

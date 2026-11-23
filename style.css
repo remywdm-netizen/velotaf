@@ -82,8 +82,6 @@ button { cursor: pointer; }
 .people { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; background: var(--soft); font-size: .88rem; max-width: 100%; border: 0; }
 .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chip.lead { background: var(--vest); color: var(--vest-ink); font-weight: 600; }
-.chip .tag { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
 .pick .chip { padding: 6px 14px 6px 6px; font-size: .95rem; }
 .pick .chip:hover { background: var(--lane); color: var(--lane-ink); }
 .av { width: 22px; height: 22px; border-radius: 50%; flex: none; display: inline-grid; place-items: center; font-size: .66rem; font-weight: 700; color: #fff; font-family: var(--font-body); }
@@ -93,7 +91,6 @@ button { cursor: pointer; }
 .me-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .tog { border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 14px; font-weight: 600; }
 .tog[aria-pressed="true"] { background: var(--lane); border-color: var(--lane); color: var(--lane-ink); }
-.tog.vest[aria-pressed="true"] { background: var(--vest); border-color: var(--vest); color: var(--vest-ink); }
 
 .weeknav { display: flex; align-items: center; gap: 6px; }
 .iconbtn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 34px; height: 34px; display: grid; place-items: center; }
@@ -110,7 +107,6 @@ table.week { border-collapse: separate; border-spacing: 4px; width: 100%; min-wi
 button.cell { border-style: dashed; }
 button.cell:hover { border-color: var(--lane); }
 .pip { padding: 1px 5px; border-radius: 4px; background: var(--lane); color: var(--lane-ink); }
-.pip.lead { background: var(--vest); color: var(--vest-ink); }
 .cell.past { opacity: .55; }
 .week tfoot td { text-align: center; font-family: var(--font-data); font-size: .78rem; color: var(--muted); }
 .hint { font-size: .82rem; color: var(--muted); }

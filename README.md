@@ -2,7 +2,7 @@
 
 Site web pour organiser un groupe qui va au travail à vélo, chaque jour ouvré.
 
-- **Le prochain trajet** : qui fait l'aller, qui fait le retour, qui mène le groupe.
+- **Le prochain trajet** : qui fait l'aller, qui fait le retour.
 - **La semaine** : planning du lundi au vendredi, chacun coche ses cases (A+R, A seul, R seul).
 - **Annonces** : « 5 min de retard », « Crevaison », « Je ne viens pas »… ou un message libre.
 - **Ce mois-ci** : nombre de trajets, kilomètres roulés et CO₂ évité.

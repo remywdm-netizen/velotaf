@@ -84,6 +84,11 @@
       </div>
       <label class="field"><span class="label">Lieu d'arrivée</span><input id="cfg-dest" maxlength="100" placeholder="Parking vélo, entrée nord"></label>
       <label class="field"><span class="label">Itinéraire et consignes</span><textarea id="cfg-route" maxlength="800" placeholder="Quai de la Loire → piste du canal → pont Vert. Lumières obligatoires, on attend le dernier au feu."></textarea></label>
+      <fieldset class="field admins">
+        <legend class="label">Administrateurs</legend>
+        <p class="hint">Eux seuls peuvent modifier ces réglages. Cochez un membre pour lui donner ce droit.</p>
+        <div class="admin-list" id="cfg-admins"></div>
+      </fieldset>
       <div class="actions">
         <button class="primary" type="submit">Enregistrer</button>
         <button class="ghost" type="button" id="cfg-cancel">Fermer</button>

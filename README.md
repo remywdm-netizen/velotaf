@@ -29,6 +29,9 @@ Les données sont stockées dans **Firebase Firestore** (gratuit pour cet usage)
 5. Revenez à la **vue d'ensemble du projet**, cliquez sur l'icône **Web `</>`** pour ajouter une application web
    (nom libre, pas besoin de Firebase Hosting). Firebase affiche un bloc `firebaseConfig = { … }`.
 6. Copiez ces valeurs dans [`firebase-config.js`](firebase-config.js) et faites un commit.
+7. Menu **Créer → Authentication** : **Commencer**, onglet **Méthode de connexion**, choisissez **Anonyme**,
+   activez-le puis **Enregistrer**. C'est invisible pour les cyclistes : cela sert à reconnaître chaque appareil,
+   pour que seuls les administrateurs puissent modifier les réglages du groupe.
 
 Ces valeurs ne sont pas secrètes : elles identifient le projet. La protection vient des règles Firestore.
 
@@ -83,5 +86,9 @@ python3 -m http.server 8000
 
 ## Limites connues
 
-- Les réglages du groupe sont modifiables par tous les membres (groupe de confiance).
+- Seuls les **administrateurs** modifient les réglages (rendez-vous, horaires, distance, itinéraire). La personne
+  qui crée le groupe en est administratrice ; elle peut cocher d'autres membres dans les réglages.
+- Le droit d'administrateur est lié à l'appareil et au navigateur. Si l'administrateur change de téléphone,
+  un autre administrateur doit lui redonner le droit. S'il n'y en a pas d'autre, modifiez le champ `admins`
+  du groupe dans la console Firebase (Firestore → `groups` → code du groupe).
 - Si quelqu'un change de téléphone, il lui suffit de rouvrir le lien et de choisir son prénom dans la liste.

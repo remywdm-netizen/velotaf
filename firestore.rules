@@ -4,6 +4,8 @@ rules_version = '2';
 // Principe : chaque groupe vit sous /groups/{code}, où {code} est un identifiant
 // aléatoire de 10 caractères ou plus, présent dans le lien partagé.
 // Sans le code, impossible de lister ni de lire un groupe.
+// Chaque appareil est connecté de façon anonyme (Firebase Authentication → Anonyme) :
+// seuls les appareils listés dans `admins` peuvent modifier les réglages du groupe.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -15,8 +17,13 @@ service cloud.firestore {
       return v is string && v.size() <= max;
     }
 
+    function signedIn() {
+      return request.auth != null;
+    }
+
     function validGroup(d) {
-      return d.keys().hasOnly(['name', 'meet', 'aller', 'retour', 'km', 'dest', 'route', 'createdAt'])
+      return d.keys().hasOnly(['name', 'meet', 'aller', 'retour', 'km', 'dest', 'route', 'createdAt', 'admins'])
+        && (!('admins' in d) || (d.admins is list && d.admins.size() >= 1 && d.admins.size() <= 10))
         && shortString(d.name, 60)
         && (!('meet' in d) || shortString(d.meet, 100))
         && (!('aller' in d) || shortString(d.aller, 5))
@@ -28,7 +35,8 @@ service cloud.firestore {
     }
 
     function validRider(d) {
-      return d.keys().hasOnly(['name', 'days', 'posts', 'updatedAt'])
+      return d.keys().hasOnly(['name', 'days', 'posts', 'updatedAt', 'uid'])
+        && (!('uid' in d) || d.uid == request.auth.uid)
         && shortString(d.name, 40) && d.name.size() > 0
         && d.days is map && d.days.size() <= 80
         && d.posts is list && d.posts.size() <= 20
@@ -38,12 +46,19 @@ service cloud.firestore {
     match /groups/{code} {
       allow get: if validCode(code);
       allow list: if false;
-      allow create, update: if validCode(code) && validGroup(request.resource.data);
+      // Création : l'appareil qui crée le groupe en devient l'administrateur.
+      allow create: if signedIn() && validCode(code) && validGroup(request.resource.data)
+        && request.resource.data.admins == [request.auth.uid];
+      // Modification des réglages : administrateurs uniquement, et ils restent administrateurs.
+      // (Un groupe créé avant l'ajout des administrateurs reste modifiable par tous jusqu'au premier enregistrement.)
+      allow update: if signedIn() && validCode(code) && validGroup(request.resource.data)
+        && request.auth.uid in resource.data.get('admins', [request.auth.uid])
+        && request.auth.uid in request.resource.data.admins;
       allow delete: if false;
 
       match /riders/{riderId} {
         allow read: if validCode(code);
-        allow create, update: if validCode(code)
+        allow create, update: if signedIn() && validCode(code)
           && riderId.matches('^[A-Za-z0-9]{8,40}$')
           && exists(/databases/$(database)/documents/groups/$(code))
           && validRider(request.resource.data);

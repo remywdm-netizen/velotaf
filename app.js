@@ -57,7 +57,7 @@ function parseCode(text) {
 function show(view) {
   for (const v of ["view-home", "view-who", "view-main"]) $(v).hidden = v !== view;
   $("facts").hidden = view === "view-home";
-  $("btn-config").hidden = view !== "view-main";
+  $("btn-config").hidden = view !== "view-main" || !isAdmin();
 }
 
 function banner(msg, err) {
@@ -333,8 +333,27 @@ $("btn-copy").addEventListener("click", async () => {
 });
 $("btn-switch").addEventListener("click", () => { clearTimeout(timer); flush(); ls.del(`velotaf:me:${code}`); meId = null; showWho(); });
 
-// Réglages
+// Réglages (réservés aux administrateurs ; les règles Firestore le vérifient aussi)
+/** Un groupe sans liste d'administrateurs (créé avant cette fonction) reste modifiable par tous. */
+function isAdmin() { return !!store && (!Array.isArray(cfg.admins) || cfg.admins.includes(store.uid)); }
+
+function renderAdmins() {
+  const box = $("cfg-admins"); box.replaceChildren();
+  const admins = new Set(Array.isArray(cfg.admins) ? cfg.admins : [store.uid]);
+  const seen = new Set();
+  Object.entries(riders).sort((a, b) => (a[1].name || "").localeCompare(b[1].name || "", "fr")).forEach(([id, r]) => {
+    if (!r.uid || seen.has(r.uid)) return; seen.add(r.uid);
+    const lab = document.createElement("label"); lab.className = "admin-opt";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.value = r.uid; cb.checked = admins.has(r.uid);
+    if (r.uid === store.uid) { cb.checked = true; cb.disabled = true; }
+    const s = document.createElement("span"); s.textContent = r.uid === store.uid ? `${r.name || "Moi"} (vous)` : (r.name || "Cycliste");
+    lab.append(cb, avatar(r.name), s); box.append(lab);
+  });
+}
+
 function openConfig() {
+  if (!isAdmin()) return;
+  renderAdmins();
   $("cfg-name").value = cfg.name || ""; $("cfg-meet").value = cfg.meet || "";
   $("cfg-aller").value = cfg.aller || "08:00"; $("cfg-retour").value = cfg.retour || "17:45";
   $("cfg-km").value = cfg.km || ""; $("cfg-dest").value = cfg.dest || ""; $("cfg-route").value = cfg.route || "";
@@ -349,10 +368,11 @@ $("cfg-form").addEventListener("submit", async (e) => {
     aller: $("cfg-aller").value, retour: $("cfg-retour").value,
     km: Math.min(200, Math.max(0, Number($("cfg-km").value) || 0)),
     dest: $("cfg-dest").value.trim(), route: $("cfg-route").value.trim(), createdAt: cfg.createdAt || Date.now(),
+    admins: [...new Set([store.uid, ...[...$("cfg-admins").querySelectorAll("input:checked")].map((c) => c.value)])].slice(0, 10),
   };
   const st = $("cfg-status"); st.className = "status"; st.textContent = "Enregistrement…";
   try { await store.saveGroup(data); st.textContent = "Enregistré."; setTimeout(() => { $("config-panel").hidden = true; }, 700); }
-  catch (err) { st.className = "status err"; st.textContent = `Refusé : ${err?.message || err}`; }
+  catch (err) { st.className = "status err"; st.textContent = `Refusé : seuls les administrateurs du groupe peuvent modifier les réglages.`; console.error(err); }
 });
 
 // Accueil
@@ -362,7 +382,7 @@ $("create-form").addEventListener("submit", async (e) => {
   const newCode = randomId(12);
   try {
     const s = await openStore(newCode);
-    await s.saveGroup({ name: $("create-name").value.trim().slice(0, 60), meet: "", aller: "08:00", retour: "17:45", km: 0, dest: "", route: "", createdAt: Date.now() });
+    await s.saveGroup({ name: $("create-name").value.trim().slice(0, 60), meet: "", aller: "08:00", retour: "17:45", km: 0, dest: "", route: "", createdAt: Date.now(), admins: [s.uid] });
     const id = randomId(16), name = $("create-me").value.trim().slice(0, 40);
     await s.saveRider(id, { name, days: {}, posts: [], updatedAt: Date.now() });
     ls.set(`velotaf:me:${newCode}`, id); ls.set(`velotaf:name:${newCode}`, name);
@@ -446,7 +466,10 @@ async function boot() {
   unsubs.push(store.onGroup((g) => {
     groupLoaded = true;
     if (!g) { clearTimeout(slow); show("view-home"); banner("Ce lien ne correspond à aucun groupe. Vérifiez qu'il est complet, ou créez un groupe.", true); return; }
-    cfg = g; renderConfig(); ready();
+    cfg = g; renderConfig();
+    $("btn-config").hidden = $("view-main").hidden || !isAdmin();
+    if (!isAdmin()) $("config-panel").hidden = true;
+    ready();
   }, onErr));
   unsubs.push(store.onRiders((r) => {
     ridersLoaded = true;

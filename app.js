@@ -3,6 +3,8 @@ import { openStore, isConfigured } from "./store.js";
 const $ = (id) => document.getElementById(id);
 const DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven."];
 const CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+/** Durée de vie d'une annonce : 2 heures. */
+const POST_TTL = 2 * 3600e3;
 const pad = (n) => String(n).padStart(2, "0");
 
 // ---------- Dates ----------
@@ -212,7 +214,7 @@ function renderWeek(ids) {
 }
 
 function renderFeed(ids) {
-  const since = Date.now() - 48 * 3600e3;
+  const since = Date.now() - POST_TTL;
   const all = [];
   ids.forEach((u) => (riders[u]?.posts || []).forEach((p) => { if (p && p.t > since) all.push({ ...p, u }); }));
   all.sort((a, b) => b.t - a.t);
@@ -257,7 +259,7 @@ function myDoc() {
 export function prune(d, now = new Date()) {
   const cutoff = iso(addDays(now, -62));
   for (const k of Object.keys(d.days)) { const v = d.days[k]; if (k < cutoff || !v || (!v.aller && !v.retour)) delete d.days[k]; }
-  const since = now.getTime() - 7 * 86400e3;
+  const since = now.getTime() - POST_TTL;
   d.posts = d.posts.filter((p) => p.t > since).slice(-20);
   return d;
 }
@@ -480,5 +482,6 @@ async function boot() {
 }
 
 window.addEventListener("hashchange", boot);
-setInterval(() => { if (meId && iso(nextRideDay(new Date(), latestRetour(todayIso()))) !== iso(rideDay)) render(); }, 60e3);
+// Chaque minute : fait disparaître les annonces de plus de 2 h et passe au jour suivant si besoin.
+setInterval(() => { if (meId) render(); }, 60e3);
 boot();

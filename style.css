@@ -1,16 +1,16 @@
-/* Signalétique de piste cyclable : en-tête "panneau" vert, accent jaune gilet haute visibilité. */
+/* Rouge et noir de Monaco : en-tête rouge, accents noirs (blancs en mode sombre). */
 :root {
-  --bg: #eef2f1;
+  --bg: #f6f3f3;
   --surface: #ffffff;
-  --ink: #12302c;
-  --muted: #5b716d;
-  --line: #d3dedb;
-  --lane: #1f6f5c;
+  --ink: #141012;
+  --muted: #6b5f61;
+  --line: #e2d8d9;
+  --lane: #ce1126;
   --lane-ink: #ffffff;
-  --vest: #e4ff3a;
-  --vest-ink: #1b2400;
-  --soft: #e1ebe8;
-  --warn: #b4541c;
+  --vest: #141012;
+  --vest-ink: #ffffff;
+  --soft: #f4e7e8;
+  --warn: #ce1126;
   --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -18,8 +18,8 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e1715; --surface: #15211e; --ink: #e3eeeb; --muted: #93a8a3; --line: #263632;
-    --lane: #2f9a80; --lane-ink: #04130f; --vest: #d8f23a; --vest-ink: #141b00; --soft: #1c2b27; --warn: #f08a4b;
+    --bg: #0d0a0b; --surface: #181213; --ink: #f2ecec; --muted: #a8999b; --line: #2e2224;
+    --lane: #e0283c; --lane-ink: #ffffff; --vest: #f2ecec; --vest-ink: #141012; --soft: #241a1c; --warn: #ff6b7a;
     color-scheme: dark;
   }
 }
@@ -37,7 +37,7 @@ p { margin: 0; }
 .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
 button, input, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-:focus-visible { outline: 3px solid var(--vest); outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--lane); outline-offset: 2px; }
 
 .sign { background: var(--lane); color: var(--lane-ink); border-radius: 14px; padding: 20px 22px; display: grid; gap: 14px; position: relative; overflow: hidden; }
 .sign::after { content: ""; position: absolute; right: -40px; top: 0; bottom: 0; width: 140px; background: repeating-linear-gradient(90deg, transparent 0 18px, rgba(255,255,255,.14) 18px 30px); pointer-events: none; }
@@ -50,7 +50,7 @@ button { cursor: pointer; }
 .fact .label { color: inherit; opacity: .75; }
 .fact .v { font-weight: 600; font-size: 1.02rem; overflow-wrap: anywhere; }
 .fact .v.mono { font-size: 1.15rem; }
-.sign-btn { position: absolute; right: 14px; top: 14px; z-index: 2; background: var(--vest); color: var(--vest-ink); border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: .85rem; }
+.sign-btn { position: absolute; right: 14px; top: 14px; z-index: 2; background: #141012; color: #ffffff; border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: .85rem; }
 
 .banner { background: var(--soft); border: 1px dashed var(--line); border-radius: 12px; padding: 14px 16px; color: var(--muted); }
 .banner strong { color: var(--ink); }
@@ -116,7 +116,7 @@ table.week { border-collapse: separate; border-spacing: 4px; width: 100%; min-wi
 .cell { width: 100%; min-width: 54px; height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: center; gap: 3px; font-family: var(--font-data); font-size: .78rem; padding: 0 4px; }
 button.cell { border-style: dashed; }
 button.cell:hover { border-color: var(--lane); }
-.pip { white-space: nowrap; padding: 1px 5px; border-radius: 4px; background: var(--lane); color: var(--lane-ink); }
+.pip { white-space: nowrap; padding: 1px 5px; border-radius: 4px; background: var(--vest); color: var(--vest-ink); }
 .cell.past { opacity: .55; }
 .week tfoot td { text-align: center; font-family: var(--font-data); font-size: .78rem; color: var(--muted); }
 .hint { font-size: .82rem; color: var(--muted); }
@@ -125,7 +125,7 @@ button.cell:hover { border-color: var(--lane); }
 .quick button { border: 1px solid var(--line); background: var(--soft); border-radius: 999px; padding: 5px 12px; font-size: .85rem; }
 .composer { display: flex; gap: 8px; }
 .composer input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 12px; }
-.primary { background: var(--lane); color: var(--lane-ink); border: 0; border-radius: 10px; padding: 9px 16px; font-weight: 600; }
+.primary { background: var(--vest); color: var(--vest-ink); border: 0; border-radius: 10px; padding: 9px 16px; font-weight: 600; }
 .ghost { background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 9px 16px; }
 .feed { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
 .post { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; }

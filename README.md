@@ -21,7 +21,7 @@ Les données sont stockées dans **Firebase Firestore** (gratuit pour cet usage)
 ### 1. Créer la base de données Firebase
 
 1. Allez sur <https://console.firebase.google.com> et connectez-vous avec un compte Google.
-2. **Créer un projet** (ex. `peloton-velotaf`). Google Analytics n'est pas nécessaire.
+2. **Créer un projet** (ex. `velotaf`). Google Analytics n'est pas nécessaire.
 3. Dans le menu **Créer → Firestore Database** : **Créer une base de données**, choisissez un emplacement
    européen (ex. `europe-west9` Paris), puis démarrez en **mode production**.
 4. Onglet **Règles** de Firestore : remplacez tout le contenu par celui du fichier [`firestore.rules`](firestore.rules),

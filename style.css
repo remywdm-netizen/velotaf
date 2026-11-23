@@ -88,6 +88,16 @@ button { cursor: pointer; }
 .empty { color: var(--muted); font-size: .9rem; }
 
 .me-block { display: grid; gap: 8px; }
+.retour-at { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; background: var(--soft); border-radius: 10px; padding: 10px 12px; }
+.retour-field { display: flex; align-items: center; gap: 8px; }
+.retour-field input { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 10px; font-family: var(--font-data); }
+.slot-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.slot-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 10px; font-size: .8rem; }
+.slot-btn:hover { border-color: var(--lane); }
+.slot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; }
+.slot + .slot { border-top: 1px dashed var(--line); padding-top: 8px; }
+.slot-time { font-size: .82rem; color: var(--muted); }
+#t-retour { display: grid; gap: 8px; }
 .me-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .tog { border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 14px; font-weight: 600; }
 .tog[aria-pressed="true"] { background: var(--lane); border-color: var(--lane); color: var(--lane-ink); }
@@ -106,7 +116,7 @@ table.week { border-collapse: separate; border-spacing: 4px; width: 100%; min-wi
 .cell { width: 100%; min-width: 54px; height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: center; gap: 3px; font-family: var(--font-data); font-size: .78rem; padding: 0 4px; }
 button.cell { border-style: dashed; }
 button.cell:hover { border-color: var(--lane); }
-.pip { padding: 1px 5px; border-radius: 4px; background: var(--lane); color: var(--lane-ink); }
+.pip { white-space: nowrap; padding: 1px 5px; border-radius: 4px; background: var(--lane); color: var(--lane-ink); }
 .cell.past { opacity: .55; }
 .week tfoot td { text-align: center; font-family: var(--font-data); font-size: .78rem; color: var(--muted); }
 .hint { font-size: .82rem; color: var(--muted); }

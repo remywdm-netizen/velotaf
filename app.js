@@ -78,8 +78,8 @@ function demoBanner() {
 
 // ---------- Rendu ----------
 function renderConfig() {
-  $("g-name").textContent = cfg.name || "Peloton Vélotaf";
-  document.title = cfg.name ? `${cfg.name} · Peloton Vélotaf` : "Peloton Vélotaf";
+  $("g-name").textContent = cfg.name || "Vélotaf";
+  document.title = cfg.name ? (cfg.name === "Vélotaf" ? "Vélotaf" : `${cfg.name} · Vélotaf`) : "Vélotaf";
   $("g-meet").textContent = cfg.meet || "À définir";
   $("g-aller").textContent = cfg.aller || "--:--";
   $("g-retour").textContent = cfg.retour || "--:--";
@@ -101,21 +101,65 @@ function chip(id) {
   return el;
 }
 
+const retourOf = (x) => (x && x.retour ? x.retourAt || cfg.retour || "--:--" : null);
+
+/** Heure de retour la plus tardive du jour (habituelle ou choisie par un cycliste). */
+function latestRetour(date) {
+  let latest = cfg.retour || "18:00";
+  for (const id of Object.keys(riders)) { const t = retourOf(dayOf(id, date)); if (t && t !== "--:--" && t > latest) latest = t; }
+  return latest;
+}
+
 function render() {
-  rideDay = nextRideDay(new Date(), cfg.retour);
+  rideDay = nextRideDay(new Date(), latestRetour(todayIso()));
   const rd = iso(rideDay);
   const ids = Object.keys(riders);
 
   $("today-date").textContent = (rd === todayIso() ? "Aujourd'hui, " : "") + fmtLong(rideDay);
-  for (const leg of ["aller", "retour"]) {
-    const box = $(`t-${leg}`); box.replaceChildren();
-    const going = ids.filter((u) => dayOf(u, rd)?.[leg]).sort((a, b) => nameOf(a).localeCompare(nameOf(b), "fr"));
-    going.forEach((u) => box.append(chip(u)));
-    if (!going.length) { const e = document.createElement("span"); e.className = "empty"; e.textContent = "Personne d'inscrit pour l'instant."; box.append(e); }
-    $(`t-${leg}-n`).textContent = going.length;
-  }
+  const byName = (a, b) => nameOf(a).localeCompare(nameOf(b), "fr");
+  const none = () => { const e = document.createElement("span"); e.className = "empty"; e.textContent = "Personne d'inscrit pour l'instant."; return e; };
+
+  // Aller : un seul départ
+  const allerBox = $("t-aller"); allerBox.replaceChildren();
+  const allers = ids.filter((u) => dayOf(u, rd)?.aller).sort(byName);
+  allers.forEach((u) => allerBox.append(chip(u)));
+  if (!allers.length) allerBox.append(none());
+  $("t-aller-n").textContent = allers.length;
+
+  // Retour : regroupé par heure de départ
+  const retourBox = $("t-retour"); retourBox.replaceChildren();
+  const slots = new Map();
+  ids.forEach((u) => { const t = retourOf(dayOf(u, rd)); if (t) { if (!slots.has(t)) slots.set(t, []); slots.get(t).push(u); } });
+  const times = [...slots.keys()].sort();
+  times.forEach((t) => {
+    const row = document.createElement("div"); row.className = "slot";
+    const tm = document.createElement("span"); tm.className = "slot-time mono"; tm.textContent = t;
+    const ppl = document.createElement("div"); ppl.className = "people";
+    slots.get(t).sort(byName).forEach((u) => ppl.append(chip(u)));
+    row.append(tm, ppl); retourBox.append(row);
+  });
+  if (!times.length) retourBox.append(none());
+  $("t-retour-n").textContent = [...slots.values()].reduce((n, l) => n + l.length, 0);
+  $("t-retour-time").textContent = times.length > 1 ? `${times[0]} → ${times[times.length - 1]}` : (times[0] || cfg.retour || "--:--");
+
   const mine = dayOf(meId, rd) || {};
   for (const k of ["aller", "retour"]) $(`me-${k}`).setAttribute("aria-pressed", mine[k] ? "true" : "false");
+
+  // Mon heure de retour + raccourcis vers les heures déjà choisies par d'autres
+  $("me-retour-wrap").hidden = !mine.retour;
+  if (mine.retour) {
+    const myT = retourOf(mine);
+    if (document.activeElement !== $("me-retour-at")) $("me-retour-at").value = myT === "--:--" ? "" : myT;
+    const sl = $("retour-slots"); sl.replaceChildren();
+    const others = new Set([cfg.retour, ...times].filter((t) => t && t !== "--:--" && t !== myT));
+    [...others].sort().forEach((t) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "slot-btn mono"; b.dataset.time = t;
+      const n = (slots.get(t) || []).length;
+      b.textContent = n ? `${t} · ${n}` : t;
+      b.title = n ? `Partir à ${t} avec ${n} cycliste${n > 1 ? "s" : ""}` : `Partir à ${t} (heure habituelle)`;
+      sl.append(b);
+    });
+  }
 
   renderWeek(ids);
   renderFeed(ids);
@@ -153,7 +197,12 @@ function renderWeek(ids) {
       el.className = "cell" + (past ? " past" : "");
       if (el.tagName === "BUTTON") { el.type = "button"; el.dataset.date = di; el.setAttribute("aria-label", `Mon trajet du ${fmtLong(d)}`); }
       if (x.aller || x.retour) {
-        for (const [k, l] of [["aller", "A"], ["retour", "R"]]) if (x[k]) { const p = document.createElement("span"); p.className = "pip"; p.textContent = l; el.append(p); }
+        if (x.aller) { const p = document.createElement("span"); p.className = "pip"; p.textContent = "A"; el.append(p); }
+        if (x.retour) {
+          const p = document.createElement("span"); p.className = "pip";
+          p.textContent = x.retourAt && x.retourAt !== cfg.retour ? `R ${x.retourAt}` : "R";
+          el.append(p); el.title = `Retour à ${retourOf(x)}`;
+        }
       } else el.textContent = "—";
       r.insertCell().append(el);
     });
@@ -221,15 +270,15 @@ export function prune(d, now = new Date()) {
 function stage(d, immediate) {
   d = prune(d);
   riders = { ...riders, [meId]: { ...d, updatedAt: Date.now() } };
-  pending = d; render();
+  pending = { id: meId, data: d }; render();
   clearTimeout(timer); timer = setTimeout(flush, immediate ? 0 : 500);
 }
 
 async function flush() {
   if (writing || !pending) return;
   writing = true;
-  const data = pending; pending = null;
-  try { await store.saveRider(meId, { ...data, updatedAt: Date.now() }); if (isConfigured) banner(null); }
+  const { id, data } = pending; pending = null;
+  try { await store.saveRider(id, { ...data, updatedAt: Date.now() }); if (isConfigured) banner(null); }
   catch (e) { banner(`Enregistrement impossible : ${e?.message || e}. Vérifiez votre connexion.`, true); }
   writing = false;
   if (pending) flush();
@@ -238,6 +287,8 @@ async function flush() {
 function setDay(date, patch) {
   const d = myDoc(); const prev = d.days[date] || {};
   const next = { aller: !!(patch.aller ?? prev.aller), retour: !!(patch.retour ?? prev.retour) };
+  const at = "retourAt" in patch ? patch.retourAt : prev.retourAt;
+  if (next.retour && at && /^\d\d:\d\d$/.test(at) && at !== cfg.retour) next.retourAt = at;
   d.days[date] = next; stage(d);
 }
 
@@ -262,6 +313,9 @@ export function cycle(cur) { // — → A+R → A → R → —
   return { aller: false, retour: false };
 }
 
+$("me-retour-at").addEventListener("change", (e) => { if (e.target.value) setDay(iso(rideDay), { retourAt: e.target.value }); });
+$("retour-slots").addEventListener("click", (e) => { const b = e.target.closest("button[data-time]"); if (b) setDay(iso(rideDay), { retourAt: b.dataset.time }); });
+
 $("week").addEventListener("click", (e) => {
   const b = e.target.closest("button.cell"); if (!b) return;
   setDay(b.dataset.date, cycle(dayOf(meId, b.dataset.date) || {}));
@@ -278,7 +332,7 @@ $("btn-copy").addEventListener("click", async () => {
   catch { const r = document.createRange(); r.selectNodeContents($("share-link")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("btn-copy").textContent = "Sélectionné"; }
   setTimeout(() => { $("btn-copy").textContent = "Copier"; }, 1800);
 });
-$("btn-switch").addEventListener("click", () => { ls.del(`velotaf:me:${code}`); meId = null; showWho(); });
+$("btn-switch").addEventListener("click", () => { clearTimeout(timer); flush(); ls.del(`velotaf:me:${code}`); meId = null; showWho(); });
 
 // Réglages
 function openConfig() {
@@ -292,7 +346,7 @@ $("cfg-cancel").addEventListener("click", () => { $("config-panel").hidden = tru
 $("cfg-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const data = {
-    name: $("cfg-name").value.trim() || "Peloton Vélotaf", meet: $("cfg-meet").value.trim(),
+    name: $("cfg-name").value.trim() || "Vélotaf", meet: $("cfg-meet").value.trim(),
     aller: $("cfg-aller").value, retour: $("cfg-retour").value,
     km: Math.min(200, Math.max(0, Number($("cfg-km").value) || 0)),
     dest: $("cfg-dest").value.trim(), route: $("cfg-route").value.trim(), createdAt: cfg.createdAt || Date.now(),
@@ -397,12 +451,12 @@ async function boot() {
   }, onErr));
   unsubs.push(store.onRiders((r) => {
     ridersLoaded = true;
-    riders = pending && meId ? { ...r, [meId]: { ...(r[meId] || {}), ...pending } } : r;
+    riders = pending ? { ...r, [pending.id]: { ...(r[pending.id] || {}), ...pending.data } } : r;
     if (!$("view-who").hidden && groupLoaded) showWho();
     ready();
   }, onErr));
 }
 
 window.addEventListener("hashchange", boot);
-setInterval(() => { if (meId && iso(nextRideDay(new Date(), cfg.retour)) !== iso(rideDay)) render(); }, 60e3);
+setInterval(() => { if (meId && iso(nextRideDay(new Date(), latestRetour(todayIso()))) !== iso(rideDay)) render(); }, 60e3);
 boot();

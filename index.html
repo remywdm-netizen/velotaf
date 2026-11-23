@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Peloton Vélotaf</title>
+<title>Vélotaf</title>
 <meta name="description" content="Organisez votre groupe de vélotaf : qui roule demain, retards et kilomètres du mois.">
 <meta name="theme-color" content="#1f6f5c">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -21,14 +21,14 @@
         <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="23" r="6"/><circle cx="26" cy="23" r="6"/><path d="M8 23l6-11h9l3 11M14 12l5 11h-11M21 7h4l-2 5"/></svg>
       </div>
       <div>
-        <h1 id="g-name">Peloton Vélotaf</h1>
+        <h1 id="g-name">Vélotaf</h1>
         <div class="sub" id="g-sub">On roule ensemble jusqu'au travail, chaque jour ouvré.</div>
       </div>
     </div>
     <div class="facts" id="facts" hidden>
       <div class="fact"><span class="label">Rendez-vous</span><span class="v" id="g-meet">À définir</span></div>
       <div class="fact"><span class="label">Départ aller</span><span class="v mono" id="g-aller">--:--</span></div>
-      <div class="fact"><span class="label">Départ retour</span><span class="v mono" id="g-retour">--:--</span></div>
+      <div class="fact"><span class="label">Retour habituel</span><span class="v mono" id="g-retour">--:--</span></div>
       <div class="fact"><span class="label">Arrivée</span><span class="v" id="g-dest">À définir</span></div>
       <div class="fact"><span class="label">Distance</span><span class="v mono" id="g-km">— km</span></div>
     </div>
@@ -79,7 +79,7 @@
       </div>
       <div class="row">
         <label class="field"><span class="label">Départ aller</span><input id="cfg-aller" type="time" value="08:00"></label>
-        <label class="field"><span class="label">Départ retour</span><input id="cfg-retour" type="time" value="17:45"></label>
+        <label class="field"><span class="label">Retour habituel</span><input id="cfg-retour" type="time" value="17:45"></label>
         <label class="field"><span class="label">Distance aller (km)</span><input id="cfg-km" type="number" min="0" max="200" step="0.1" placeholder="7.5"></label>
       </div>
       <label class="field"><span class="label">Lieu d'arrivée</span><input id="cfg-dest" maxlength="100" placeholder="Parking vélo, entrée nord"></label>
@@ -128,6 +128,10 @@
               <button class="tog" type="button" id="me-aller" aria-pressed="false">Je fais l'aller</button>
               <button class="tog" type="button" id="me-retour" aria-pressed="false">Je fais le retour</button>
             </div>
+            <div class="retour-at" id="me-retour-wrap" hidden>
+              <label class="retour-field"><span class="label">Je repars à</span><input id="me-retour-at" type="time" step="300"></label>
+              <div class="slot-btns" id="retour-slots" aria-label="Heures déjà choisies"></div>
+            </div>
           </div>
         </section>
 
@@ -141,7 +145,7 @@
             </div>
           </div>
           <div class="tablewrap"><table class="week" id="week"></table></div>
-          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul).</p>
+          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). Une heure à côté du R indique un retour décalé.</p>
         </section>
       </div>
 
@@ -179,7 +183,7 @@
     </div>
   </div>
 
-  <footer>Peloton Vélotaf · les données du groupe sont visibles par toute personne qui a le lien · <a href="#nouveau">Créer ou rejoindre un autre groupe</a></footer>
+  <footer>Vélotaf · les données du groupe sont visibles par toute personne qui a le lien · <a href="#nouveau">Créer ou rejoindre un autre groupe</a></footer>
 </div>
 <script type="module" src="app.js"></script>
 </body>

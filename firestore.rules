@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Règles de sécurité Firestore pour Peloton Vélotaf.
+// Règles de sécurité Firestore pour Vélotaf.
 // Principe : chaque groupe vit sous /groups/{code}, où {code} est un identifiant
 // aléatoire de 10 caractères ou plus, présent dans le lien partagé.
 // Sans le code, impossible de lister ni de lire un groupe.

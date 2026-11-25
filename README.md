@@ -8,7 +8,7 @@ Site web pour organiser un groupe qui va au travail à vélo, chaque jour ouvré
 - **Ce mois-ci** : nombre de trajets, kilomètres roulés et CO₂ évité.
 - **Réglages** : point de rendez-vous, heures de départ, distance, arrivée, itinéraire.
 
-Pas de compte à créer : chaque groupe a un **lien secret** (`https://…/#k7Q2mX9pRtAb`) et chaque cycliste choisit
+Le site héberge **un seul groupe**. Pas de compte à créer : on ouvre le site et chaque cycliste choisit
 son prénom, retenu sur son téléphone. Le site fonctionne sur mobile et peut être ajouté à l'écran d'accueil.
 
 Les données sont stockées dans **Firebase Firestore** (gratuit pour cet usage) et le site est hébergé sur
@@ -43,9 +43,12 @@ Ces valeurs ne sont pas secrètes : elles identifient le projet. La protection v
 
 ### 3. Créer le groupe
 
-1. Ouvrez le site, **Créer un groupe** avec son nom et votre prénom.
+1. Ouvrez le site : à la première visite, il propose de **créer le groupe** (nom et votre prénom).
+   Vous en devenez l'administrateur.
 2. Remplissez les réglages (rendez-vous, horaires, distance).
-3. **Copiez le lien du groupe** et envoyez-le aux collègues (messagerie, e-mail…).
+3. Envoyez **l'adresse du site** aux collègues (messagerie, e-mail…).
+
+L'identifiant du groupe est fixé dans [`groupe.js`](groupe.js). Pour repartir de zéro, changez-le.
 
 ---
 
@@ -65,8 +68,8 @@ python3 -m http.server 8000
 
 ## Sécurité et vie privée
 
-- Le code du groupe (12 caractères aléatoires) est la clé : **toute personne qui a le lien peut lire et modifier
-  le planning du groupe**. Ne le publiez pas sur un réseau social.
+- **Toute personne qui a l'adresse du site peut lire le planning et s'y inscrire.** Ne la publiez pas sur un
+  réseau social. Seuls les administrateurs peuvent modifier les réglages.
 - Il est impossible de lister les groupes existants sans connaître leur code (règle `allow list: if false`).
 - Seuls les prénoms, les jours cochés et les annonces des 2 dernières heures sont stockés (elles s'effacent ensuite). Les jours de plus de 2 mois
   sont effacés automatiquement à la prochaine modification de chaque cycliste.
@@ -79,6 +82,7 @@ python3 -m http.server 8000
 | `index.html` | Structure de la page |
 | `style.css` | Mise en forme (clair et sombre) |
 | `app.js` | Logique : planning, annonces, statistiques, réglages |
+| `groupe.js` | Identifiant du groupe unique du site |
 | `store.js` | Accès aux données (Firestore, ou navigateur en mode démo) |
 | `firebase-config.js` | Configuration Firebase à remplir |
 | `firestore.rules` | Règles de sécurité à coller dans la console Firebase |

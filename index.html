@@ -36,23 +36,17 @@
 
   <div class="banner" id="banner" hidden></div>
 
-  <!-- Accueil : créer ou rejoindre un groupe -->
+  <!-- Mise en place du groupe (première visite) -->
   <section class="panel" id="view-home" hidden aria-labelledby="home-h">
-    <h2 id="home-h">Rouler ensemble jusqu'au travail</h2>
-    <p class="lead">Chaque matin, savoir qui part du point de rendez-vous, et à quelle heure. Sans compte : un lien secret par groupe, un prénom par cycliste.</p>
+    <h2 id="home-h">Mettre en place le groupe</h2>
+    <p class="lead">Le groupe n'existe pas encore. Donnez-lui un nom et indiquez votre prénom : vous en serez l'administrateur et pourrez régler le rendez-vous et les horaires.</p>
     <div class="home-grid">
       <form class="form card" id="create-form">
-        <h3>Créer un groupe</h3>
+        <h3>Créer le groupe</h3>
         <label class="field"><span class="label">Nom du groupe</span><input id="create-name" maxlength="60" placeholder="Vélotaf Hôpital Nord" required></label>
         <label class="field"><span class="label">Votre prénom</span><input id="create-me" maxlength="40" placeholder="Camille" required autocomplete="given-name"></label>
-        <button class="primary" type="submit">Créer et obtenir le lien</button>
+        <button class="primary" type="submit">Créer le groupe</button>
         <span class="status" id="create-status"></span>
-      </form>
-      <form class="form card" id="join-form">
-        <h3>Rejoindre un groupe</h3>
-        <label class="field"><span class="label">Lien ou code reçu</span><input id="join-code" maxlength="300" placeholder="https://…/#k7Q2mX9pRt" required></label>
-        <button class="ghost" type="submit">Rejoindre</button>
-        <span class="status" id="join-status"></span>
       </form>
     </div>
   </section>
@@ -100,7 +94,7 @@
   <!-- Vue principale -->
   <div id="view-main" hidden>
     <div class="sharebar">
-      <span class="label">Lien du groupe</span>
+      <span class="label">Lien à partager</span>
       <code id="share-link" class="mono"></code>
       <button class="ghost small" type="button" id="btn-copy">Copier</button>
       <span class="spacer"></span>
@@ -201,7 +195,7 @@
     </div>
   </div>
 
-  <footer>Vélotaf · les données du groupe sont visibles par toute personne qui a le lien</footer>
+  <footer>Vélotaf · le planning est visible par toute personne qui a le lien du site</footer>
 </div>
 <script type="module" src="app.js"></script>
 </body>

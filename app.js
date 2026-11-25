@@ -1,4 +1,5 @@
 import { openStore, isConfigured } from "./store.js";
+import { GROUP_CODE } from "./groupe.js";
 
 const $ = (id) => document.getElementById(id);
 const DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven."];
@@ -51,12 +52,6 @@ let cfg = {}, riders = {}, weekOffset = 0, rideDay = new Date();
 let pickedDay = null; // jour futur choisi par l'utilisateur (AAAA-MM-JJ), sinon le prochain trajet
 const fromIso = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 let groupLoaded = false, ridersLoaded = false;
-
-function parseCode(text) {
-  const s = String(text || "").trim();
-  const m = s.match(/#([A-Za-z0-9]{10,40})\s*$/) || s.match(/^([A-Za-z0-9]{10,40})$/);
-  return m ? m[1] : null;
-}
 
 function show(view) {
   for (const v of ["view-home", "view-who", "view-main"]) $(v).hidden = v !== view;
@@ -438,11 +433,11 @@ $("cfg-form").addEventListener("submit", async (e) => {
   catch (err) { st.className = "status err"; st.textContent = `Refusé : seuls les administrateurs du groupe peuvent modifier les réglages.`; console.error(err); }
 });
 
-// Accueil
+// Mise en place du groupe (une seule fois, par la première personne : elle en devient administratrice)
 $("create-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const st = $("create-status"); st.className = "status"; st.textContent = "Création…";
-  const newCode = randomId(12);
+  const newCode = GROUP_CODE;
   try {
     const s = await openStore(newCode);
     await s.saveGroup({ name: $("create-name").value.trim().slice(0, 60), meet: "", aller: "08:00", retour: "17:45", km: 0, dest: "", route: "", createdAt: Date.now(), admins: [s.uid] });
@@ -450,16 +445,9 @@ $("create-form").addEventListener("submit", async (e) => {
     await s.saveRider(id, { name, days: {}, posts: [], updatedAt: Date.now() });
     ls.set(`velotaf:me:${newCode}`, id); ls.set(`velotaf:name:${newCode}`, name);
     ls.set(`velotaf:firstrun:${newCode}`, "1");
-    location.hash = newCode;
+    boot();
   } catch (err) { st.className = "status err"; st.textContent = `Création impossible : ${err?.message || err}`; }
 });
-$("join-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const c = parseCode($("join-code").value);
-  if (!c) { $("join-status").className = "status err"; $("join-status").textContent = "Lien ou code non reconnu : il se termine par # suivi d'au moins 10 lettres et chiffres."; return; }
-  location.hash = c;
-});
-
 // Identité
 function showWho() {
   show("view-who");
@@ -487,8 +475,7 @@ $("who-form").addEventListener("submit", async (e) => {
 function enterMain(id) {
   meId = id;
   $("me-name").textContent = riders[id]?.name || ls.get(`velotaf:name:${code}`) || "";
-  $("share-link").textContent = `${location.origin}${location.pathname}#${code}`;
-  ls.set("velotaf:last", code);
+  $("share-link").textContent = `${location.origin}${location.pathname}`;
   show("view-main");
   render();
   if (ls.get(`velotaf:firstrun:${code}`)) { ls.del(`velotaf:firstrun:${code}`); openConfig(); }
@@ -500,13 +487,9 @@ async function boot() {
   unsubs.forEach((u) => u()); unsubs = [];
   $("config-panel").hidden = true;
   cfg = {}; riders = {}; groupLoaded = ridersLoaded = false; meId = null;
-  code = parseCode(location.hash);
+  code = GROUP_CODE;
   renderConfig();
-  if (!code) {
-    const last = ls.get("velotaf:last");
-    if (!location.hash && last) { location.replace(`#${last}`); return; }
-    show("view-home"); demoBanner(); return;
-  }
+  if (location.hash) history.replaceState(null, "", location.pathname);
 
   banner("Chargement du groupe…");
   try { store = await openStore(code); }
@@ -528,7 +511,7 @@ async function boot() {
 
   unsubs.push(store.onGroup((g) => {
     groupLoaded = true;
-    if (!g) { clearTimeout(slow); show("view-home"); banner("Ce lien ne correspond à aucun groupe. Vérifiez qu'il est complet, ou créez un groupe.", true); return; }
+    if (!g) { groupLoaded = false; clearTimeout(slow); show("view-home"); if (isConfigured) banner(null); else demoBanner(); return; }
     cfg = g; renderConfig();
     $("btn-config").hidden = $("view-main").hidden || !isAdmin();
     if (!isAdmin()) $("config-panel").hidden = true;
@@ -542,7 +525,6 @@ async function boot() {
   }, onErr));
 }
 
-window.addEventListener("hashchange", boot);
 // Chaque minute : fait disparaître les annonces de plus de 2 h et passe au jour suivant si besoin.
 setInterval(() => { if (meId) render(); }, 60e3);
 boot();

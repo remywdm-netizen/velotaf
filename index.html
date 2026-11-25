@@ -40,6 +40,11 @@
   <section class="panel" id="view-home" hidden aria-labelledby="home-h">
     <h2 id="home-h">Rouler ensemble jusqu'au travail</h2>
     <p class="lead">Chaque matin, savoir qui part du point de rendez-vous, et à quelle heure. Sans compte : un lien secret par groupe, un prénom par cycliste.</p>
+    <div class="mygroups" id="mygroups-box" hidden>
+      <h3>Mes groupes</h3>
+      <p class="hint">Les groupes créés ou rejoints sur cet appareil.</p>
+      <ul class="group-list" id="mygroups"></ul>
+    </div>
     <div class="home-grid">
       <form class="form card" id="create-form">
         <h3>Créer un groupe</h3>
@@ -106,6 +111,7 @@
       <span class="spacer"></span>
       <span class="hint">Vous êtes <strong id="me-name"></strong></span>
       <button class="ghost small" type="button" id="btn-switch">Changer</button>
+      <a class="ghost small" href="#nouveau" id="btn-groups">Mes groupes</a>
     </div>
 
     <div class="cols">
@@ -197,7 +203,7 @@
     </div>
   </div>
 
-  <footer>Vélotaf · les données du groupe sont visibles par toute personne qui a le lien · <a href="#nouveau">Créer ou rejoindre un autre groupe</a></footer>
+  <footer>Vélotaf · les données du groupe sont visibles par toute personne qui a le lien · <a href="#nouveau">Mes groupes, créer ou rejoindre un groupe</a></footer>
 </div>
 <script type="module" src="app.js"></script>
 </body>

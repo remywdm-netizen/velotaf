@@ -1,4 +1,4 @@
-import { openStore, isConfigured } from "./store.js";
+import { openStore, openDirectory, isConfigured } from "./store.js";
 
 const $ = (id) => document.getElementById(id);
 const DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven."];
@@ -106,8 +106,38 @@ function renderMyGroups() {
   });
 }
 
+// ---------- Annuaire des groupes publics ----------
+async function renderDirectory() {
+  const ul = $("pubgroups"), st = $("pub-status");
+  st.className = "status"; st.textContent = "Chargement…";
+  try {
+    const dir = await openDirectory();
+    const list = (await dir.list()).sort((a, b) => (a.name || "").localeCompare(b.name || "", "fr"));
+    const mine = new Set(myGroups().map((g) => g.code));
+    ul.replaceChildren();
+    st.textContent = list.length ? "" : "Aucun groupe public pour l'instant.";
+    list.forEach((g) => {
+      const li = document.createElement("li"); li.className = "group-item";
+      const a = document.createElement("a"); a.href = `#${g.code}`; a.className = "group-link";
+      const n = document.createElement("span"); n.className = "group-name"; n.textContent = g.name || "Groupe sans nom";
+      a.append(n);
+      if (mine.has(g.code)) { const t = document.createElement("span"); t.className = "badge soft"; t.textContent = "déjà rejoint"; a.append(t); }
+      const info = document.createElement("span"); info.className = "group-info";
+      const parts = [];
+      if (g.meet || g.dest) parts.push(`${g.meet || "?"} → ${g.dest || "?"}`);
+      if (g.aller || g.retour) parts.push(`aller ${g.aller || "--:--"} · retour ${g.retour || "--:--"}`);
+      if (g.km) parts.push(`${String(g.km).replace(".", ",")} km`);
+      info.textContent = parts.join(" · "); a.append(info);
+      const go = document.createElement("a"); go.href = `#${g.code}`; go.className = "ghost small"; go.textContent = mine.has(g.code) ? "Ouvrir" : "Rejoindre";
+      li.append(a, go); ul.append(li);
+    });
+  } catch (err) {
+    st.className = "status err"; st.textContent = "Impossible de charger les groupes publics. Vérifiez votre connexion."; console.error(err);
+  }
+}
+
 function show(view) {
-  if (view === "view-home") renderMyGroups();
+  if (view === "view-home") { renderMyGroups(); renderDirectory(); }
   for (const v of ["view-home", "view-who", "view-main"]) $(v).hidden = v !== view;
   $("facts").hidden = view === "view-home";
   $("btn-config").hidden = view !== "view-main" || !isAdmin();
@@ -436,6 +466,7 @@ function openConfig() {
   $("cfg-name").value = cfg.name || ""; $("cfg-meet").value = cfg.meet || "";
   $("cfg-aller").value = cfg.aller || "08:00"; $("cfg-retour").value = cfg.retour || "17:45";
   $("cfg-km").value = cfg.km || ""; $("cfg-dest").value = cfg.dest || ""; $("cfg-route").value = cfg.route || "";
+  $("cfg-public").checked = !!cfg.public;
   $("cfg-status").textContent = ""; $("config-panel").hidden = false; $("cfg-meet").focus();
 }
 $("btn-config").addEventListener("click", openConfig);
@@ -448,10 +479,19 @@ $("cfg-form").addEventListener("submit", async (e) => {
     km: Math.min(200, Math.max(0, Number($("cfg-km").value) || 0)),
     dest: $("cfg-dest").value.trim(), route: $("cfg-route").value.trim(), createdAt: cfg.createdAt || Date.now(),
     admins: [...new Set([store.uid, ...[...$("cfg-admins").querySelectorAll("input:checked")].map((c) => c.value)])].slice(0, 10),
+    public: $("cfg-public").checked,
   };
   const st = $("cfg-status"); st.className = "status"; st.textContent = "Enregistrement…";
-  try { await store.saveGroup(data); st.textContent = "Enregistré."; setTimeout(() => { $("config-panel").hidden = true; }, 700); }
-  catch (err) { st.className = "status err"; st.textContent = `Refusé : seuls les administrateurs du groupe peuvent modifier les réglages.`; console.error(err); }
+  const wasPublic = !!cfg.public;
+  try { await store.saveGroup(data); }
+  catch (err) { st.className = "status err"; st.textContent = `Refusé : seuls les administrateurs du groupe peuvent modifier les réglages.`; console.error(err); return; }
+  // Annuaire : on publie (ou retire) une fiche résumée du groupe, jamais la liste des membres.
+  try {
+    const dir = await openDirectory();
+    if (data.public) await dir.publish(code, { name: data.name, meet: data.meet, dest: data.dest, aller: data.aller, retour: data.retour, km: data.km, updatedAt: Date.now() });
+    else if (wasPublic) await dir.unpublish(code);
+  } catch (err) { st.className = "status err"; st.textContent = "Réglages enregistrés, mais l'annuaire des groupes publics n'a pas pu être mis à jour."; console.error(err); return; }
+  st.textContent = "Enregistré."; setTimeout(() => { $("config-panel").hidden = true; }, 700);
 });
 
 // Accueil

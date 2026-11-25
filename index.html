@@ -141,6 +141,10 @@
             <div class="retour-at" id="me-aller-wrap" hidden>
               <label class="retour-field"><span class="label">Je pars à</span><input id="me-aller-at" type="time" step="300"></label>
               <div class="slot-btns" id="aller-slots" aria-label="Heures de départ déjà choisies"></div>
+              <div class="place-row">
+                <label class="retour-field"><span class="label">Départ de</span><input id="me-aller-from" maxlength="100" autocomplete="off"></label>
+                <div class="slot-btns" id="aller-places" aria-label="Points de départ déjà choisis"></div>
+              </div>
             </div>
             <div class="retour-at" id="me-retour-wrap" hidden>
               <label class="retour-field"><span class="label">Je repars à</span><input id="me-retour-at" type="time" step="300"></label>
@@ -159,7 +163,7 @@
             </div>
           </div>
           <div class="tablewrap"><table class="week" id="week"></table></div>
-          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). Touchez un jour pour régler vos horaires de ce jour-là. Une heure à côté du A ou du R indique un horaire différent de l'habituel.</p>
+          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). Touchez un jour pour régler vos horaires de ce jour-là. Une heure à côté du A ou du R indique un horaire différent de l'habituel ; un point (•) un autre lieu de départ.</p>
         </section>
       </div>
 
@@ -197,7 +201,7 @@
     </div>
   </div>
 
-  <footer>Vélotaf · les données du groupe sont visibles par toute personne qui a le lien · <a href="#nouveau">Créer ou rejoindre un autre groupe</a></footer>
+  <footer>Vélotaf · les données du groupe sont visibles par toute personne qui a le lien</footer>
 </div>
 <script type="module" src="app.js"></script>
 </body>

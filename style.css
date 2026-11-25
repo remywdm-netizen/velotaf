@@ -96,6 +96,10 @@ button { cursor: pointer; }
 .slot-btn:hover { border-color: var(--lane); }
 .slot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; }
 .slot + .slot { border-top: 1px dashed var(--line); padding-top: 8px; }
+.place-row { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.place-row .retour-field { flex: 1 1 220px; min-width: 0; }
+.place-row .retour-field input { flex: 1; min-width: 0; font-family: var(--font-body); }
+.slot-place { flex-basis: 100%; font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
 .slot-time { font-size: .82rem; color: var(--muted); }
 .people.slots { display: grid; gap: 8px; }
 .me-row { display: flex; flex-wrap: wrap; gap: 8px; }

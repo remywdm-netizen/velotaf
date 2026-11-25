@@ -107,6 +107,8 @@ function chip(id) {
 
 /** Heure de départ d'un cycliste pour un trajet ("aller" ou "retour"), ou null s'il ne le fait pas. */
 const timeOf = (x, leg) => (x && x[leg] ? x[`${leg}At`] || cfg[leg] || "--:--" : null);
+/** Point de départ du matin d'un cycliste : le sien s'il l'a changé, sinon le rendez-vous du groupe. */
+const placeOf = (x) => (x && x.aller ? x.allerFrom || cfg.meet || "" : null);
 
 /** Heure de retour la plus tardive du jour (habituelle ou choisie par un cycliste). */
 function latestRetour(date) {
@@ -130,16 +132,24 @@ function render() {
   const mine = dayOf(meId, rd) || {};
 
   for (const leg of ["aller", "retour"]) {
-    // Cyclistes regroupés par heure de départ
+    // Cyclistes regroupés par heure (et, le matin, par point de départ)
     const box = $(`t-${leg}`); box.replaceChildren();
-    const slots = new Map();
-    ids.forEach((u) => { const t = timeOf(dayOf(u, rd), leg); if (t) { if (!slots.has(t)) slots.set(t, []); slots.get(t).push(u); } });
+    const slots = new Map(), groups = new Map();
+    ids.forEach((u) => {
+      const x = dayOf(u, rd), t = timeOf(x, leg); if (!t) return;
+      if (!slots.has(t)) slots.set(t, []); slots.get(t).push(u);
+      const place = leg === "aller" ? placeOf(x) : "";
+      const key = `${t}|${place}`;
+      if (!groups.has(key)) groups.set(key, { t, place, ids: [] }); groups.get(key).ids.push(u);
+    });
     const times = [...slots.keys()].sort();
-    times.forEach((t) => {
+    const multiPlaces = new Set([...groups.values()].map((g) => g.place)).size > 1;
+    [...groups.values()].sort((a, b) => a.t.localeCompare(b.t) || a.place.localeCompare(b.place, "fr")).forEach((g) => {
       const row = document.createElement("div"); row.className = "slot";
-      const tm = document.createElement("span"); tm.className = "slot-time mono"; tm.textContent = t;
+      const tm = document.createElement("span"); tm.className = "slot-time mono"; tm.textContent = g.t;
       const ppl = document.createElement("div"); ppl.className = "people";
-      slots.get(t).sort(byName).forEach((u) => ppl.append(chip(u)));
+      if (g.place && (g.place !== cfg.meet || multiPlaces)) { const pl = document.createElement("span"); pl.className = "slot-place"; pl.textContent = `depuis ${g.place}`; ppl.append(pl); }
+      g.ids.sort(byName).forEach((u) => ppl.append(chip(u)));
       row.append(tm, ppl); box.append(row);
     });
     if (!times.length) { const e = document.createElement("span"); e.className = "empty"; e.textContent = "Personne d'inscrit pour l'instant."; box.append(e); }
@@ -162,6 +172,23 @@ function render() {
         sl.append(b);
       });
     }
+  }
+
+  // Mon point de départ du matin + raccourcis vers les points déjà choisis par d'autres
+  if (mine.aller) {
+    const myP = placeOf(mine), input = $("me-aller-from");
+    if (document.activeElement !== input) input.value = myP;
+    input.placeholder = cfg.meet || "Point de rendez-vous";
+    const counts = new Map();
+    ids.forEach((u) => { const p = placeOf(dayOf(u, rd)); if (p) counts.set(p, (counts.get(p) || 0) + 1); });
+    const pl = $("aller-places"); pl.replaceChildren();
+    [...new Set([cfg.meet, ...counts.keys()])].filter((p) => p && p !== myP).sort((a, b) => a.localeCompare(b, "fr")).forEach((p) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "slot-btn"; b.dataset.place = p;
+      const n = counts.get(p) || 0;
+      b.textContent = n ? `${p} · ${n}` : p;
+      b.title = p === cfg.meet ? "Point de rendez-vous habituel du groupe" : `Partir de ${p}`;
+      pl.append(b);
+    });
   }
 
   renderWeek(ids);
@@ -209,8 +236,9 @@ function renderWeek(ids) {
         const tips = [];
         for (const [leg, l, word] of [["aller", "A", "Aller"], ["retour", "R", "Retour"]]) if (x[leg]) {
           const at = x[`${leg}At`], p = document.createElement("span"); p.className = "pip";
-          p.textContent = at && at !== cfg[leg] ? `${l} ${at}` : l;
-          el.append(p); tips.push(`${word} à ${timeOf(x, leg)}`);
+          const moved = leg === "aller" && x.allerFrom && x.allerFrom !== cfg.meet;
+          p.textContent = (at && at !== cfg[leg] ? `${l} ${at}` : l) + (moved ? " •" : "");
+          el.append(p); tips.push(`${word} à ${timeOf(x, leg)}${moved ? ` depuis ${x.allerFrom}` : ""}`);
         }
         el.title = tips.join(" · ");
       } else el.textContent = "—";
@@ -301,6 +329,8 @@ function setDay(date, patch) {
     const k = `${leg}At`, at = k in patch ? patch[k] : prev[k];
     if (next[leg] && at && /^\d\d:\d\d$/.test(at) && at !== cfg[leg]) next[k] = at;
   }
+  const from = String(("allerFrom" in patch ? patch.allerFrom : prev.allerFrom) || "").trim().slice(0, 100);
+  if (next.aller && from && from !== cfg.meet) next.allerFrom = from;
   d.days[date] = next; stage(d);
 }
 
@@ -329,6 +359,9 @@ for (const leg of ["aller", "retour"]) {
   $(`me-${leg}-at`).addEventListener("change", (e) => { if (e.target.value) setDay(iso(rideDay), { [`${leg}At`]: e.target.value }); });
   $(`${leg}-slots`).addEventListener("click", (e) => { const b = e.target.closest("button[data-time]"); if (b) setDay(iso(rideDay), { [`${leg}At`]: b.dataset.time }); });
 }
+
+$("me-aller-from").addEventListener("change", (e) => setDay(iso(rideDay), { allerFrom: e.target.value }));
+$("aller-places").addEventListener("click", (e) => { const b = e.target.closest("button[data-place]"); if (b) setDay(iso(rideDay), { allerFrom: b.dataset.place }); });
 
 $("week").addEventListener("click", (e) => {
   const b = e.target.closest("button.cell"); if (!b) return;

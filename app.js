@@ -58,56 +58,7 @@ function parseCode(text) {
   return m ? m[1] : null;
 }
 
-// ---------- Mes groupes (mémorisés sur cet appareil) ----------
-// La liste de tous les groupes n'est volontairement pas consultable : chaque groupe reste privé.
-function myGroups() {
-  let list = [];
-  try { list = JSON.parse(ls.get("velotaf:groups")) || []; } catch {}
-  if (!Array.isArray(list)) list = [];
-  // Reprend les groupes rejoints avant l'ajout de cette liste
-  try {
-    for (const k of Object.keys(localStorage)) {
-      const m = k.match(/^velotaf:me:([A-Za-z0-9]{10,40})$/);
-      if (m && !list.some((g) => g.code === m[1])) list.push({ code: m[1], name: "", admin: false, last: 0 });
-    }
-  } catch {}
-  return list;
-}
-function rememberGroup(c, patch) {
-  const list = myGroups().filter((g) => g.code !== c);
-  const prev = myGroups().find((g) => g.code === c) || {};
-  list.push({ ...prev, code: c, ...patch, last: Date.now() });
-  ls.set("velotaf:groups", JSON.stringify(list.slice(-50)));
-}
-function forgetGroup(c) {
-  ls.set("velotaf:groups", JSON.stringify(myGroups().filter((g) => g.code !== c)));
-  for (const k of ["me", "name", "firstrun"]) ls.del(`velotaf:${k}:${c}`);
-  if (ls.get("velotaf:last") === c) ls.del("velotaf:last");
-  renderMyGroups();
-}
-function renderMyGroups() {
-  const list = myGroups().sort((a, b) => (b.last || 0) - (a.last || 0));
-  const ul = $("mygroups"); ul.replaceChildren();
-  $("mygroups-box").hidden = !list.length;
-  list.forEach((g) => {
-    const li = document.createElement("li"); li.className = "group-item";
-    const a = document.createElement("a"); a.href = `#${g.code}`; a.className = "group-link";
-    const n = document.createElement("span"); n.className = "group-name"; n.textContent = g.name || "Groupe sans nom";
-    a.append(n);
-    if (g.admin) { const t = document.createElement("span"); t.className = "badge"; t.textContent = "administrateur"; a.append(t); }
-    if (g.me) { const m = document.createElement("span"); m.className = "hint"; m.textContent = `vous : ${g.me}`; a.append(m); }
-    const del = document.createElement("button"); del.type = "button"; del.className = "ghost small"; del.textContent = "Retirer";
-    del.title = "Retirer de cette liste (le groupe n'est pas supprimé)";
-    del.addEventListener("click", () => {
-      if (del.dataset.confirm) forgetGroup(g.code);
-      else { del.dataset.confirm = "1"; del.textContent = "Confirmer ?"; setTimeout(() => { delete del.dataset.confirm; del.textContent = "Retirer"; }, 3000); }
-    });
-    li.append(a, del); ul.append(li);
-  });
-}
-
 function show(view) {
-  if (view === "view-home") renderMyGroups();
   for (const v of ["view-home", "view-who", "view-main"]) $(v).hidden = v !== view;
   $("facts").hidden = view === "view-home";
   $("btn-config").hidden = view !== "view-main" || !isAdmin();
@@ -505,7 +456,6 @@ function enterMain(id) {
   $("me-name").textContent = riders[id]?.name || ls.get(`velotaf:name:${code}`) || "";
   $("share-link").textContent = `${location.origin}${location.pathname}#${code}`;
   ls.set("velotaf:last", code);
-  rememberGroup(code, { name: cfg.name || "", admin: Array.isArray(cfg.admins) && cfg.admins.includes(store.uid), me: riders[id]?.name || ls.get(`velotaf:name:${code}`) || "" });
   show("view-main");
   render();
   if (ls.get(`velotaf:firstrun:${code}`)) { ls.del(`velotaf:firstrun:${code}`); openConfig(); }
@@ -549,7 +499,6 @@ async function boot() {
     cfg = g; renderConfig();
     $("btn-config").hidden = $("view-main").hidden || !isAdmin();
     if (!isAdmin()) $("config-panel").hidden = true;
-    if (meId) rememberGroup(code, { name: g.name || "", admin: Array.isArray(g.admins) && g.admins.includes(store.uid) });
     ready();
   }, onErr));
   unsubs.push(store.onRiders((r) => {

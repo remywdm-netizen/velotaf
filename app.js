@@ -48,6 +48,8 @@ function avatar(name) {
 // ---------- État ----------
 let store = null, code = null, meId = null;
 let cfg = {}, riders = {}, weekOffset = 0, rideDay = new Date();
+let pickedDay = null; // jour futur choisi par l'utilisateur (AAAA-MM-JJ), sinon le prochain trajet
+const fromIso = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 let groupLoaded = false, ridersLoaded = false;
 
 function parseCode(text) {
@@ -114,8 +116,13 @@ function latestRetour(date) {
 }
 
 function render() {
-  rideDay = nextRideDay(new Date(), latestRetour(todayIso()));
+  const next = nextRideDay(new Date(), latestRetour(todayIso()));
+  if (pickedDay && pickedDay <= iso(next)) pickedDay = null;
+  rideDay = pickedDay ? fromIso(pickedDay) : next;
   const rd = iso(rideDay);
+  $("today-h").textContent = pickedDay ? "Trajet prévu" : "Le prochain trajet";
+  $("day-prev").disabled = !pickedDay;
+  $("day-reset").hidden = !pickedDay;
   const ids = Object.keys(riders);
 
   $("today-date").textContent = (rd === todayIso() ? "Aujourd'hui, " : "") + fmtLong(rideDay);
@@ -173,9 +180,15 @@ function renderWeek(ids) {
   const hr = t.createTHead().insertRow();
   hr.append(document.createElement("th"));
   dates.forEach((d, i) => {
-    const th = document.createElement("th"); if (iso(d) === tIso) th.className = "today";
-    th.textContent = DAYS[i];
-    const s = document.createElement("span"); s.className = "d"; s.textContent = d.getDate(); th.append(s);
+    const di = iso(d), th = document.createElement("th");
+    th.className = [di === tIso && "today", di === iso(rideDay) && "sel"].filter(Boolean).join(" ");
+    const s = document.createElement("span"); s.className = "d"; s.textContent = d.getDate();
+    if (di >= iso(nextRideDay(new Date(), latestRetour(tIso)))) {
+      // Jour à venir : un clic l'ouvre dans la carte du haut pour régler ses horaires
+      const b = document.createElement("button"); b.type = "button"; b.className = "daybtn"; b.dataset.day = di;
+      b.setAttribute("aria-label", `Régler mes horaires du ${fmtLong(d)}`);
+      b.append(DAYS[i], s); th.append(b);
+    } else th.append(DAYS[i], s);
     hr.append(th);
   });
 
@@ -320,6 +333,21 @@ for (const leg of ["aller", "retour"]) {
 $("week").addEventListener("click", (e) => {
   const b = e.target.closest("button.cell"); if (!b) return;
   setDay(b.dataset.date, cycle(dayOf(meId, b.dataset.date) || {}));
+});
+// Choix du jour réglé dans la carte du haut
+function pickDay(di) { pickedDay = di; render(); }
+function stepDay(n) {
+  let d = addDays(rideDay, n);
+  while (d.getDay() === 0 || d.getDay() === 6) d = addDays(d, n);
+  pickDay(iso(d));
+}
+$("day-prev").addEventListener("click", () => stepDay(-1));
+$("day-next").addEventListener("click", () => stepDay(1));
+$("day-reset").addEventListener("click", () => pickDay(null));
+$("week").addEventListener("click", (e) => {
+  const b = e.target.closest("button.daybtn"); if (!b) return;
+  pickDay(b.dataset.day);
+  $("today-h").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 });
 $("wk-prev").addEventListener("click", () => { weekOffset--; render(); });
 $("wk-next").addEventListener("click", () => { weekOffset++; render(); });

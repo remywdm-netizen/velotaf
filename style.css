@@ -102,6 +102,14 @@ button { cursor: pointer; }
 .tog { border: 2px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 14px; font-weight: 600; }
 .tog[aria-pressed="true"] { background: var(--lane); border-color: var(--lane); color: var(--lane-ink); }
 
+.daynav { display: flex; align-items: center; gap: 6px; }
+.daynav .today-date { min-width: 0; text-align: center; }
+.iconbtn:disabled { opacity: .35; cursor: default; }
+.linkbtn { justify-self: start; background: none; border: 0; padding: 0; color: var(--lane); font-weight: 600; font-size: .88rem; text-decoration: underline; text-underline-offset: 3px; }
+.daybtn { background: none; border: 0; padding: 2px 6px; border-radius: 8px; color: inherit; font: inherit; width: 100%; }
+.daybtn:hover { background: var(--soft); }
+.week th.sel .daybtn { background: var(--lane); color: var(--lane-ink); }
+.week th.sel .daybtn .d { color: inherit; }
 .weeknav { display: flex; align-items: center; gap: 6px; }
 .iconbtn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 34px; height: 34px; display: grid; place-items: center; }
 .weeklbl { font-family: var(--font-data); font-size: .85rem; color: var(--muted); min-width: 9.5em; text-align: center; }

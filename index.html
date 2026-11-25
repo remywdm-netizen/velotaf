@@ -113,8 +113,13 @@
         <section class="panel" aria-labelledby="today-h">
           <div class="panel-head">
             <h2 id="today-h">Le prochain trajet</h2>
-            <span class="today-date" id="today-date"></span>
+            <div class="daynav">
+              <button class="iconbtn" type="button" id="day-prev" aria-label="Jour précédent">‹</button>
+              <span class="today-date" id="today-date"></span>
+              <button class="iconbtn" type="button" id="day-next" aria-label="Jour suivant">›</button>
+            </div>
           </div>
+          <button class="linkbtn" type="button" id="day-reset" hidden>← Revenir au prochain trajet</button>
           <div class="legs">
             <div class="leg">
               <div class="leg-head"><span class="leg-title">Aller</span><span class="leg-time" id="t-aller-time">--:--</span></div>
@@ -154,7 +159,7 @@
             </div>
           </div>
           <div class="tablewrap"><table class="week" id="week"></table></div>
-          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). Une heure à côté du A ou du R indique un horaire différent de l'habituel.</p>
+          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). Touchez un jour pour régler vos horaires de ce jour-là. Une heure à côté du A ou du R indique un horaire différent de l'habituel.</p>
         </section>
       </div>
 

@@ -68,10 +68,6 @@ python3 -m http.server 8000
 - Le code du groupe (12 caractères aléatoires) est la clé : **toute personne qui a le lien peut lire et modifier
   le planning du groupe**. Ne le publiez pas sur un réseau social.
 - Il est impossible de lister les groupes existants sans connaître leur code (règle `allow list: if false`).
-- Exception volontaire : un administrateur peut rendre son groupe **public** (case dans les réglages). Le groupe
-  apparaît alors dans la liste « Groupes publics » de la page d'accueil (nom, trajet, horaires, distance) et
-  tout le monde peut le rejoindre. Décocher la case le retire de la liste ; pour couper l'accès de ceux qui ont
-  déjà le lien, il faut créer un nouveau groupe.
 - Seuls les prénoms, les jours cochés et les annonces des 2 dernières heures sont stockés (elles s'effacent ensuite). Les jours de plus de 2 mois
   sont effacés automatiquement à la prochaine modification de chaque cycliste.
 - Les règles vérifient la forme et la taille des données envoyées.

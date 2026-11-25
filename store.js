@@ -95,28 +95,3 @@ function localStore(code) {
     async saveRider(id, data) { const v = read(); v.riders[id] = { ...data, uid }; write(v); },
   };
 }
-
-// ---------- Annuaire des groupes publics ----------
-// Un groupe n'y figure que si l'un de ses administrateurs l'a rendu public.
-// Interface : list() -> Promise<[{ code, name, meet, dest, aller, retour, km }]>,
-//             publish(code, entry) -> Promise, unpublish(code) -> Promise
-export async function openDirectory() {
-  if (isConfigured) {
-    const { fs, fsMod } = await initFirebase();
-    const { collection, doc, getDocs, setDoc, deleteDoc } = fsMod;
-    const col = collection(fs, "directory");
-    return {
-      async list() { const snap = await getDocs(col); const out = []; snap.forEach((d) => out.push({ ...d.data(), code: d.id })); return out; },
-      publish(code, entry) { return setDoc(doc(col, code), entry); },
-      unpublish(code) { return deleteDoc(doc(col, code)); },
-    };
-  }
-  const key = "velotaf:demo:directory";
-  const read = () => { try { return JSON.parse(localStorage.getItem(key)) || {}; } catch { return {}; } };
-  const write = (v) => { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} };
-  return {
-    async list() { return Object.entries(read()).map(([code, e]) => ({ ...e, code })); },
-    async publish(code, entry) { const v = read(); v[code] = entry; write(v); },
-    async unpublish(code) { const v = read(); delete v[code]; write(v); },
-  };
-}

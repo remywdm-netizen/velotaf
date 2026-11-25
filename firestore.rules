@@ -22,8 +22,7 @@ service cloud.firestore {
     }
 
     function validGroup(d) {
-      return d.keys().hasOnly(['name', 'meet', 'aller', 'retour', 'km', 'dest', 'route', 'createdAt', 'admins', 'public'])
-        && (!('public' in d) || d.public is bool)
+      return d.keys().hasOnly(['name', 'meet', 'aller', 'retour', 'km', 'dest', 'route', 'createdAt', 'admins'])
         && (!('admins' in d) || (d.admins is list && d.admins.size() >= 1 && d.admins.size() <= 10))
         && shortString(d.name, 60)
         && (!('meet' in d) || shortString(d.meet, 100))
@@ -42,35 +41,6 @@ service cloud.firestore {
         && d.days is map && d.days.size() <= 80
         && d.posts is list && d.posts.size() <= 20
         && d.updatedAt is number;
-    }
-
-    function validEntry(d) {
-      return d.keys().hasOnly(['name', 'meet', 'dest', 'aller', 'retour', 'km', 'updatedAt'])
-        && shortString(d.name, 60)
-        && (!('meet' in d) || shortString(d.meet, 100))
-        && (!('dest' in d) || shortString(d.dest, 100))
-        && (!('aller' in d) || shortString(d.aller, 5))
-        && (!('retour' in d) || shortString(d.retour, 5))
-        && (!('km' in d) || (d.km is number && d.km >= 0 && d.km <= 200))
-        && d.updatedAt is number;
-    }
-
-    function isGroupAdmin(code) {
-      return signedIn()
-        && request.auth.uid in get(/databases/$(database)/documents/groups/$(code)).data.get('admins', []);
-    }
-
-    // Annuaire des groupes publics : lisible par tous, modifiable par les administrateurs du groupe.
-    // L'identifiant de chaque fiche est le code du groupe : le rendre public, c'est publier son lien.
-    match /directory/{code} {
-      allow read: if true;
-      allow create, update: if validCode(code)
-        && exists(/databases/$(database)/documents/groups/$(code))
-        && isGroupAdmin(code)
-        && validEntry(request.resource.data);
-      allow delete: if validCode(code)
-        && exists(/databases/$(database)/documents/groups/$(code))
-        && isGroupAdmin(code);
     }
 
     match /groups/{code} {

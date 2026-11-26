@@ -114,6 +114,13 @@ button { cursor: pointer; }
 .daybtn:hover { background: var(--soft); }
 .week th.sel .daybtn { background: var(--lane); color: var(--lane-ink); }
 .week th.sel .daybtn .d { color: inherit; }
+.day-editor { border: 2px solid var(--lane); border-radius: 12px; padding: 12px; display: grid; gap: 10px; }
+.day-editor h3 { font-size: 1.15rem; }
+.ed-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.ed-row .tog { min-width: 6.5em; }
+.retour-field.grow { flex: 1 1 200px; min-width: 0; }
+.retour-field.grow input { flex: 1; min-width: 0; font-family: var(--font-body); }
+.cell.editing { outline: 2px solid var(--lane); outline-offset: 1px; }
 .weeknav { display: flex; align-items: center; gap: 6px; }
 .iconbtn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 34px; height: 34px; display: grid; place-items: center; }
 .weeklbl { font-family: var(--font-data); font-size: .85rem; color: var(--muted); min-width: 9.5em; text-align: center; }

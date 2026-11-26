@@ -187,6 +187,7 @@ function render() {
   }
 
   renderWeek(ids);
+  renderEditor();
   renderFeed(ids);
   renderStats(ids);
 }
@@ -343,13 +344,6 @@ for (const k of ["aller", "retour"]) {
   });
 }
 
-export function cycle(cur) { // — → A+R → A → R → —
-  if (!cur.aller && !cur.retour) return { aller: true, retour: true };
-  if (cur.aller && cur.retour) return { aller: true, retour: false };
-  if (cur.aller) return { aller: false, retour: true };
-  return { aller: false, retour: false };
-}
-
 for (const leg of ["aller", "retour"]) {
   $(`me-${leg}-at`).addEventListener("change", (e) => { if (e.target.value) setDay(iso(rideDay), { [`${leg}At`]: e.target.value }); });
   $(`${leg}-slots`).addEventListener("click", (e) => { const b = e.target.closest("button[data-time]"); if (b) setDay(iso(rideDay), { [`${leg}At`]: b.dataset.time }); });
@@ -358,10 +352,38 @@ for (const leg of ["aller", "retour"]) {
 $("me-aller-from").addEventListener("change", (e) => setDay(iso(rideDay), { allerFrom: e.target.value }));
 $("aller-places").addEventListener("click", (e) => { const b = e.target.closest("button[data-place]"); if (b) setDay(iso(rideDay), { allerFrom: b.dataset.place }); });
 
+// Éditeur d'un jour, ouvert en touchant une de mes cases dans la grille
+let editDay = null;
+function renderEditor() {
+  const ed = $("day-editor");
+  if (!editDay || editDay < todayIso()) { ed.hidden = true; editDay = null; return; }
+  ed.hidden = false;
+  const x = dayOf(meId, editDay) || {};
+  $("ed-title").textContent = fmtLong(fromIso(editDay)).replace(/^./, (c) => c.toUpperCase());
+  for (const leg of ["aller", "retour"]) {
+    $(`ed-${leg}`).setAttribute("aria-pressed", x[leg] ? "true" : "false");
+    $(`ed-${leg}-f`).hidden = !x[leg];
+    const inp = $(`ed-${leg}-at`);
+    if (document.activeElement !== inp) inp.value = x[leg] ? x[`${leg}At`] || cfg[leg] || "" : "";
+  }
+  $("ed-from-f").hidden = !x.aller;
+  $("ed-from").placeholder = cfg.meet || "Point de rendez-vous";
+  if (document.activeElement !== $("ed-from")) $("ed-from").value = x.aller ? x.allerFrom || cfg.meet || "" : "";
+  document.querySelectorAll("#week button.cell").forEach((c) => c.classList.toggle("editing", c.dataset.date === editDay));
+}
 $("week").addEventListener("click", (e) => {
   const b = e.target.closest("button.cell"); if (!b) return;
-  setDay(b.dataset.date, cycle(dayOf(meId, b.dataset.date) || {}));
+  editDay = editDay === b.dataset.date ? null : b.dataset.date;
+  // Un jour vide s'ouvre avec l'aller et le retour cochés, à modifier ensuite
+  if (editDay) { const x = dayOf(meId, editDay); if (!x || (!x.aller && !x.retour)) setDay(editDay, { aller: true, retour: true }); }
+  renderEditor();
 });
+$("ed-close").addEventListener("click", () => { editDay = null; renderEditor(); });
+for (const leg of ["aller", "retour"]) {
+  $(`ed-${leg}`).addEventListener("click", () => { const x = dayOf(meId, editDay) || {}; setDay(editDay, { [leg]: !x[leg] }); });
+  $(`ed-${leg}-at`).addEventListener("change", (e) => { if (e.target.value) setDay(editDay, { [`${leg}At`]: e.target.value }); });
+}
+$("ed-from").addEventListener("change", (e) => setDay(editDay, { allerFrom: e.target.value }));
 // Choix du jour réglé dans la carte du haut
 function pickDay(di) { pickedDay = di; render(); }
 function stepDay(n) {

@@ -157,7 +157,22 @@
             </div>
           </div>
           <div class="tablewrap"><table class="week" id="week"></table></div>
-          <p class="hint">Touchez vos cases pour passer de <span class="mono">—</span> à <span class="mono">A+R</span>, <span class="mono">A</span> (aller seul), <span class="mono">R</span> (retour seul). Touchez un jour pour régler vos horaires de ce jour-là. Une heure à côté du A ou du R indique un horaire différent de l'habituel ; un point (•) un autre lieu de départ.</p>
+          <div class="day-editor" id="day-editor" hidden>
+            <div class="panel-head">
+              <h3 id="ed-title"></h3>
+              <button class="ghost small" type="button" id="ed-close">Fermer</button>
+            </div>
+            <div class="ed-row">
+              <button class="tog" type="button" id="ed-aller" aria-pressed="false">Aller</button>
+              <label class="retour-field" id="ed-aller-f"><span class="label">Je pars à</span><input id="ed-aller-at" type="time" step="300"></label>
+              <label class="retour-field grow" id="ed-from-f"><span class="label">Départ de</span><input id="ed-from" maxlength="100" autocomplete="off"></label>
+            </div>
+            <div class="ed-row">
+              <button class="tog" type="button" id="ed-retour" aria-pressed="false">Retour</button>
+              <label class="retour-field" id="ed-retour-f"><span class="label">Je repars à</span><input id="ed-retour-at" type="time" step="300"></label>
+            </div>
+          </div>
+          <p class="hint">Touchez une de vos cases pour choisir aller et retour, vos horaires et votre point de départ ce jour-là. Une heure à côté du A ou du R indique un horaire différent de l'habituel ; un point (•) un autre lieu de départ.</p>
         </section>
       </div>
 

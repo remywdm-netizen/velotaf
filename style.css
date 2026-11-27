@@ -125,14 +125,15 @@ button { cursor: pointer; }
 .iconbtn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 34px; height: 34px; display: grid; place-items: center; }
 .weeklbl { font-family: var(--font-data); font-size: .85rem; color: var(--muted); min-width: 9.5em; text-align: center; }
 .tablewrap { overflow-x: auto; }
-table.week { border-collapse: separate; border-spacing: 4px; width: 100%; min-width: 460px; }
+table.week { border-collapse: separate; border-spacing: 3px; width: 100%; min-width: 520px; }
+.week th.we { color: var(--muted); font-style: italic; }
 .week th { font-weight: 600; font-size: .78rem; color: var(--muted); text-align: center; padding: 2px; }
 .week th .d { display: block; font-family: var(--font-display); font-size: 1.15rem; color: var(--ink); }
 .week th.today, .week th.today .d { color: var(--lane); }
 .week td.who { font-size: .9rem; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
 .week td.who .av { margin-right: 6px; vertical-align: -5px; }
 .week tr.mine td.who { font-weight: 600; }
-.cell { width: 100%; min-width: 54px; height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: center; gap: 3px; font-family: var(--font-data); font-size: .78rem; padding: 0 4px; }
+.cell { width: 100%; min-width: 46px; height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: center; gap: 3px; font-family: var(--font-data); font-size: .78rem; padding: 0 4px; }
 button.cell { border-style: dashed; }
 button.cell:hover { border-color: var(--lane); }
 .pip { white-space: nowrap; padding: 1px 5px; border-radius: 4px; background: var(--lane); color: var(--lane-ink); }

@@ -2,7 +2,7 @@ import { openStore, isConfigured } from "./store.js";
 import { GROUP_CODE } from "./groupe.js";
 
 const $ = (id) => document.getElementById(id);
-const DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven."];
+const DAYS = ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."];
 const CODE_ALPHABET = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 /** Durée de vie d'une annonce : 2 heures. */
 const POST_TTL = 2 * 3600e3;
@@ -15,14 +15,20 @@ const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); r
 const monday = (d) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); return addDays(x, -((x.getDay() + 6) % 7)); };
 const fmtLong = (d) => d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
-/** Prochain jour de trajet : aujourd'hui (lun-ven) tant que le retour n'est pas passé depuis 30 min, sinon le jour ouvré suivant. */
-export function nextRideDay(now, retour) {
+/** Premier jour encore modifiable : aujourd'hui tant que le retour n'est pas passé depuis 30 min, sinon demain. */
+export function firstOpenDay(now, retour) {
   const [h, m] = (retour || "18:00").split(":").map(Number);
-  let d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (now.getHours() * 60 + now.getMinutes() > h * 60 + m + 30) d = addDays(d, 1);
-  while (d.getDay() === 0 || d.getDay() === 6) d = addDays(d, 1);
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return now.getHours() * 60 + now.getMinutes() > h * 60 + m + 30 ? addDays(d, 1) : d;
+}
+
+/** Prochain trajet : le premier jour ouvré à venir, ou un samedi/dimanche si quelqu'un y est inscrit. */
+export function nextRideDay(now, retour, hasRiders = () => false) {
+  let d = firstOpenDay(now, retour);
+  while ((d.getDay() === 0 || d.getDay() === 6) && !hasRiders(iso(d))) d = addDays(d, 1);
   return d;
 }
+const someoneRides = (date) => Object.keys(riders).some((u) => { const x = dayOf(u, date); return x && (x.aller || x.retour); });
 
 function randomId(n) {
   const bytes = new Uint8Array(n); crypto.getRandomValues(bytes);
@@ -113,12 +119,13 @@ function latestRetour(date) {
 }
 
 function render() {
-  const next = nextRideDay(new Date(), latestRetour(todayIso()));
-  if (pickedDay && pickedDay <= iso(next)) pickedDay = null;
+  const first = iso(firstOpenDay(new Date(), latestRetour(todayIso())));
+  const next = nextRideDay(new Date(), latestRetour(todayIso()), someoneRides);
+  if (pickedDay && (pickedDay < first || pickedDay === iso(next))) pickedDay = null;
   rideDay = pickedDay ? fromIso(pickedDay) : next;
   const rd = iso(rideDay);
   $("today-h").textContent = pickedDay ? "Trajet prévu" : "Le prochain trajet";
-  $("day-prev").disabled = !pickedDay;
+  $("day-prev").disabled = rd <= first;
   $("day-reset").hidden = !pickedDay;
   const ids = Object.keys(riders);
 
@@ -194,9 +201,9 @@ function render() {
 
 function renderWeek(ids) {
   const start = addDays(monday(new Date()), weekOffset * 7);
-  const dates = [0, 1, 2, 3, 4].map((i) => addDays(start, i));
+  const dates = [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(start, i));
   const short = (d) => d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-  $("wk-label").textContent = `${short(dates[0])} – ${short(dates[4])}`;
+  $("wk-label").textContent = `${short(dates[0])} – ${short(dates[6])}`;
   const t = $("week"); t.replaceChildren();
   const tIso = todayIso();
 
@@ -204,9 +211,9 @@ function renderWeek(ids) {
   hr.append(document.createElement("th"));
   dates.forEach((d, i) => {
     const di = iso(d), th = document.createElement("th");
-    th.className = [di === tIso && "today", di === iso(rideDay) && "sel"].filter(Boolean).join(" ");
+    th.className = [di === tIso && "today", di === iso(rideDay) && "sel", i >= 5 && "we"].filter(Boolean).join(" ");
     const s = document.createElement("span"); s.className = "d"; s.textContent = d.getDate();
-    if (di >= iso(nextRideDay(new Date(), latestRetour(tIso)))) {
+    if (di >= iso(firstOpenDay(new Date(), latestRetour(tIso)))) {
       // Jour à venir : un clic l'ouvre dans la carte du haut pour régler ses horaires
       const b = document.createElement("button"); b.type = "button"; b.className = "daybtn"; b.dataset.day = di;
       b.setAttribute("aria-label", `Régler mes horaires du ${fmtLong(d)}`);
@@ -386,11 +393,7 @@ for (const leg of ["aller", "retour"]) {
 $("ed-from").addEventListener("change", (e) => setDay(editDay, { allerFrom: e.target.value }));
 // Choix du jour réglé dans la carte du haut
 function pickDay(di) { pickedDay = di; render(); }
-function stepDay(n) {
-  let d = addDays(rideDay, n);
-  while (d.getDay() === 0 || d.getDay() === 6) d = addDays(d, n);
-  pickDay(iso(d));
-}
+function stepDay(n) { pickDay(iso(addDays(rideDay, n))); }
 $("day-prev").addEventListener("click", () => stepDay(-1));
 $("day-next").addEventListener("click", () => stepDay(1));
 $("day-reset").addEventListener("click", () => pickDay(null));

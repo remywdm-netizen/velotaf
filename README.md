@@ -1,9 +1,9 @@
 # Vélotaf
 
-Site web pour organiser un groupe qui va au travail à vélo, chaque jour ouvré.
+Site web pour organiser un groupe qui va au travail à vélo, en semaine comme le week-end.
 
 - **Le prochain trajet** : qui fait l'aller, qui fait le retour, à quelle heure chacun part le matin et repart le soir, et d'où il part le matin.
-- **La semaine** : planning du lundi au vendredi, chacun coche ses cases (A+R, A seul, R seul).
+- **La semaine** : planning du lundi au dimanche ; toucher une de ses cases ouvre le réglage du jour (aller, retour, horaires, point de départ).
 - **Annonces** : « 5 min de retard », « Crevaison », « Je ne viens pas »… ou un message libre.
 - **Ce mois-ci** : nombre de trajets, kilomètres roulés et CO₂ évité.
 - **Réglages** : point de rendez-vous, heures de départ, distance, arrivée, itinéraire.
